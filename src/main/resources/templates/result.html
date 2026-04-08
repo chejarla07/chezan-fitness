@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customer Created Successfully</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .success-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #eaeaea;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .data-row {
+            border-bottom: 1px solid #eee;
+            padding: 0.75rem 0;
+        }
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(106, 17, 203, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div th:if="${success}" class="success-header">
+        <div class="container">
+            <h1><i class="fas fa-check-circle me-2"></i>Customer Account Created Successfully!</h1>
+            <p class="lead mb-0">The customer account has been submitted to Zuora. Below are the details you entered.</p>
+        </div>
+    </div>
+    <div th:unless="${success}" class="error-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+        <div class="container">
+            <h1><i class="fas fa-exclamation-triangle me-2"></i>Customer Account Creation Failed</h1>
+            <p class="lead mb-0">There was an error submitting the customer account to Zuora. Please check the details below.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i>Submitted Customer Details
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="section-title">Account Information</h5>
+                                <div class="data-row">
+                                    <span class="label">Company Name:</span>
+                                    <span class="value" th:text="${submittedData.name}">Acme Technology Solutions Inc.</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Currency:</span>
+                                    <span class="value" th:text="${submittedData.currency}">USD</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Payment Term:</span>
+                                    <span class="value" th:text="${submittedData.paymentTerm}">Net 30</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Batch:</span>
+                                    <span class="value" th:text="${submittedData.batch}">Batch1</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Bill Cycle Day:</span>
+                                    <span class="value" th:text="${submittedData.billCycleDay}">1</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">AutoPay:</span>
+                                    <span class="value" th:text="${submittedData.autoPay} ? 'Enabled' : 'Disabled'">Disabled</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Consumer Type:</span>
+                                    <span class="value" th:text="${submittedData.consumerType}">B2B</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Notes:</span>
+                                    <span class="value" th:text="${submittedData.notes}">Enterprise customer - VIP support level</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="section-title">Contacts</h5>
+                                <div class="data-row">
+                                    <span class="label">Billing Contact:</span>
+                                    <span class="value" th:text="${submittedData.billToFirstName + ' ' + submittedData.billToLastName}">John Doe</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Billing Email:</span>
+                                    <span class="value" th:text="${submittedData.billToEmail}">john.doe@acmetech.com</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Billing Phone:</span>
+                                    <span class="value" th:text="${submittedData.billToPhone}">+1-555-123-4567</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Shipping Contact:</span>
+                                    <span class="value" th:text="${submittedData.soldToFirstName + ' ' + submittedData.soldToLastName}">Jane Smith</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Shipping Email:</span>
+                                    <span class="value" th:text="${submittedData.soldToEmail}">jane.smith@acmetech.com</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Shipping Phone:</span>
+                                    <span class="value" th:text="${submittedData.soldToPhone}">+1-555-987-6543</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="section-title">Billing Address</h5>
+                                <div class="data-row">
+                                    <span class="label">Address:</span>
+                                    <span class="value" th:text="${submittedData.billToAddress1 + (submittedData.billToAddress2 != null ? ', ' + submittedData.billToAddress2 : '')}">123 Innovation Drive, Suite 456</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">City:</span>
+                                    <span class="value" th:text="${submittedData.billToCity}">San Francisco</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">State:</span>
+                                    <span class="value" th:text="${submittedData.billToState}">California</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">ZIP Code:</span>
+                                    <span class="value" th:text="${submittedData.billToZipCode}">94105</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Country:</span>
+                                    <span class="value" th:text="${submittedData.billToCountry}">United States</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="section-title">Shipping Address</h5>
+                                <div class="data-row">
+                                    <span class="label">Address:</span>
+                                    <span class="value" th:text="${submittedData.soldToAddress1 + (submittedData.soldToAddress2 != null ? ', ' + submittedData.soldToAddress2 : '')}">123 Innovation Drive, Suite 456</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">City:</span>
+                                    <span class="value" th:text="${submittedData.soldToCity}">San Francisco</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">State:</span>
+                                    <span class="value" th:text="${submittedData.soldToState}">California</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">ZIP Code:</span>
+                                    <span class="value" th:text="${submittedData.soldToZipCode}">94105</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="label">Country:</span>
+                                    <span class="value" th:text="${submittedData.soldToCountry}">United States</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 mb-5">
+                    <a th:href="@{/}" class="btn btn-back btn-lg px-5">
+                        <i class="fas fa-plus-circle me-2"></i>Create Another Customer
+                    </a>
+                    <button class="btn btn-outline-secondary btn-lg ms-3 px-5" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print Summary
+                    </button>
+                </div>
+
+                <div th:if="${success}" class="alert alert-info">
+                    <h5><i class="fas fa-info-circle me-2"></i>Next Steps</h5>
+                    <p class="mb-0">The customer account has been submitted to Zuora. You will receive a confirmation email shortly. You can track the account status in your Zuora dashboard.</p>
+                </div>
+                <div th:unless="${success}" class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Error Details</h5>
+                    <p class="mb-0" th:text="${error}">Error message will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

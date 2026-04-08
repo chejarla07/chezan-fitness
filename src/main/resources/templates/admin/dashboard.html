@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard | Chezan Fitness Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --info: #06b6d4;
+            --info-soft: #cffafe;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+        }
+
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        body {
+            background: var(--neutral-50);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            min-height: 100vh;
+            background: var(--neutral-900);
+            color: white;
+            position: fixed;
+            width: 280px;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--neutral-800);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .sidebar-brand h5 {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            margin: 0;
+        }
+
+        .sidebar-brand small {
+            color: var(--neutral-500);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: var(--neutral-400);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-radius: 0 8px 8px 0;
+            margin-right: 1rem;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .sidebar-menu i {
+            width: 24px;
+            font-size: 1rem;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--neutral-800);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-weight: 600;
+            font-size: 1.75rem;
+            color: var(--neutral-800);
+        }
+
+        /* Cards */
+        .stat-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.primary { background: var(--primary-soft); color: var(--primary); }
+        .stat-icon.success { background: var(--success-soft); color: var(--success); }
+        .stat-icon.warning { background: var(--warning-soft); color: var(--warning); }
+        .stat-icon.info { background: var(--info-soft); color: var(--info); }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neutral-800);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: var(--neutral-500);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+
+        .alert-success { background: var(--success-soft); color: #047857; }
+        .alert-danger { background: #fee2e2; color: #991b1b; }
+
+        /* Quick Actions */
+        .quick-action-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .quick-action-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .quick-action-card i {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin: 0 auto 0.75rem;
+        }
+
+        .quick-action-card h6 {
+            font-weight: 600;
+            color: var(--neutral-800);
+            margin: 0;
+        }
+
+        .quick-action-card small {
+            color: var(--neutral-500);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
+            <div>
+                <h5>Chezan</h5>
+                <small>Admin Portal</small>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/admin/customers"><i class="fas fa-users"></i> Customers</a></li>
+            <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+            <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="/logout" class="d-flex align-items-center text-decoration-none" style="color: var(--neutral-400);">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header animate-in">
+            <h1>Dashboard</h1>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success animate-in mb-4" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger animate-in mb-4" th:text="${error}"></div>
+
+        <!-- Stats Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 animate-in">
+                <a href="/admin/customers" class="text-decoration-none">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <div class="stat-value" th:text="${totalCustomers}">0</div>
+                                <div class="stat-label">Total Customers</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 animate-in delay-1">
+                <a href="/admin/products" class="text-decoration-none">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon success">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div>
+                                <div class="stat-value" th:text="${totalProducts}">0</div>
+                                <div class="stat-label">Products</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 animate-in delay-2">
+                <a href="/admin/invoices" class="text-decoration-none">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon warning">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <div>
+                                <div class="stat-value" th:text="${totalInvoices} ?: '--'">--</div>
+                                <div class="stat-label">Total Invoices</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 animate-in delay-2">
+                <a href="/admin/invoices" class="text-decoration-none">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon info">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div>
+                                <div class="stat-value" th:text="${totalRevenue} ?: '--'">--</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <form action="/admin/search" method="get">
+                    <div class="position-relative">
+                        <i class="fas fa-search position-absolute" style="left: 1rem; top: 50%; transform: translateY(-50%); color: var(--neutral-400);"></i>
+                        <input type="text" name="query" class="form-control form-control-lg" placeholder="Search customers, products, invoices..." style="padding-left: 3rem; border-radius: 12px; border: 1px solid var(--neutral-200);">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-4">
+            <div class="col-12">
+                <h5 class="mb-3" style="color: var(--neutral-600); font-weight: 600;">Quick Actions</h5>
+            </div>
+            <div class="col-md-3 animate-in delay-1">
+                <a href="/admin/customers/new" class="text-decoration-none">
+                    <div class="quick-action-card">
+                        <i class="fas fa-user-plus"></i>
+                        <h6>Add Customer</h6>
+                        <small>Create a new customer account</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 animate-in delay-1">
+                <a href="/admin/products/new" class="text-decoration-none">
+                    <div class="quick-action-card">
+                        <i class="fas fa-plus-circle"></i>
+                        <h6>Add Product</h6>
+                        <small>Create a new membership plan</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 animate-in delay-2">
+                <a href="/admin/customers" class="text-decoration-none">
+                    <div class="quick-action-card">
+                        <i class="fas fa-search"></i>
+                        <h6>Search Customers</h6>
+                        <small>Find and manage customers</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 animate-in delay-2">
+                <a href="/" target="_blank" class="text-decoration-none">
+                    <div class="quick-action-card">
+                        <i class="fas fa-external-link-alt"></i>
+                        <h6>View Website</h6>
+                        <small>Preview public website</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

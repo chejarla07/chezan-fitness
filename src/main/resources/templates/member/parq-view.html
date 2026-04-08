@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Health Questionnaire | Chezan Fitness</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --neutral-50: #f8fafc;
+            --neutral-200: #e2e8f0;
+            --neutral-500: #64748b;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+        }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--neutral-50); min-height: 100vh; }
+        .navbar { background: var(--neutral-800) !important; padding: 1rem 0; }
+        .navbar-brand { font-weight: 600; font-size: 1.25rem; color: white !important; }
+        .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--neutral-200); }
+        .page-header h1 { font-weight: 600; font-size: 1.75rem; color: var(--neutral-800); }
+        .card { background: white; border: 1px solid var(--neutral-200); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-header { background: transparent; border-bottom: 1px solid var(--neutral-200); padding: 1.25rem; }
+        .card-body { padding: 1.5rem; }
+        .status-badge { padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; }
+        .status-clear { background: var(--success-soft); color: #047857; }
+        .status-requires-clearance { background: var(--warning-soft); color: #92400e; }
+        .question-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--neutral-200); }
+        .question-row:last-child { border-bottom: none; }
+        .answer-yes { color: var(--warning); font-weight: 600; }
+        .answer-no { color: var(--success); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/member/dashboard"><i class="fas fa-layer-group me-2"></i>Chezan</a>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="page-header">
+            <h1><i class="fas fa-heartbeat me-2 text-danger"></i>Your Health Questionnaire</h1>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">PAR-Q Response (Version <span th:text="${questionnaire.version}">2024-01</span>)</h5>
+                <span class="status-badge" th:classappend="${questionnaire.safeToExercise} ? 'status-clear' : 'status-requires-clearance'">
+                    <i class="fas" th:classappend="${questionnaire.safeToExercise} ? 'fa-check-circle' : 'fa-exclamation-triangle'"></i>
+                    <span th:text="${questionnaire.safeToExercise} ? 'Clear to Exercise' : 'Consult Recommended'">Status</span>
+                </span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    <i class="fas fa-calendar me-1"></i>
+                    Submitted: <span th:text="${#temporals.format(questionnaire.completedAt, 'MMM d, yyyy h:mm a')}">Date</span>
+                </p>
+
+                <div class="question-list">
+                    <div class="question-row">
+                        <span>Has a doctor ever said you have heart disease?</span>
+                        <span th:classappend="${questionnaire.q1HeartDisease} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q1HeartDisease} ? 'Yes' : 'No'">No</span>
+                    </div>
+                    <div class="question-row">
+                        <span>Do you feel chest pain during physical activity?</span>
+                        <span th:classappend="${questionnaire.q2ChestPainActivity} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q2ChestPainActivity} ? 'Yes' : 'No'">No</span>
+                    </div>
+                    <div class="question-row">
+                        <span>Do you feel chest pain when NOT doing physical activity?</span>
+                        <span th:classappend="${questionnaire.q3ChestPainNoActivity} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q3ChestPainNoActivity} ? 'Yes' : 'No'">No</span>
+                    </div>
+                    <div class="question-row">
+                        <span>Do you lose balance because of dizziness?</span>
+                        <span th:classappend="${questionnaire.q4BalanceIssues} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q4BalanceIssues} ? 'Yes' : 'No'">No</span>
+                    </div>
+                    <div class="question-row">
+                        <span>Do you have a bone/joint problem that could worsen?</span>
+                        <span th:classappend="${questionnaire.q5BoneJointIssues} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q5BoneJointIssues} ? 'Yes' : 'No'">No</span>
+                    </div>
+                    <div class="question-row">
+                        <span>Are you on medication for blood pressure or heart?</span>
+                        <span th:classappend="${questionnaire.q6BloodPressureMeds} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q6BloodPressureMeds} ? 'Yes' : 'No'">No</span>
+                    </div>
+                    <div class="question-row">
+                        <span>Any other reason you shouldn't exercise?</span>
+                        <span th:classappend="${questionnaire.q7OtherReasons} ? 'answer-yes' : 'answer-no'"
+                              th:text="${questionnaire.q7OtherReasons} ? 'Yes' : 'No'">No</span>
+                    </div>
+                </div>
+
+                <div th:if="${questionnaire.additionalNotes}" class="mt-4">
+                    <h6>Additional Notes:</h6>
+                    <p class="text-muted" th:text="${questionnaire.additionalNotes}">Notes</p>
+                </div>
+
+                <div th:if="${!questionnaire.safeToExercise}" class="alert alert-warning mt-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Recommendation:</strong> Based on your responses, we recommend consulting with a healthcare provider before starting an exercise program. You can still use the facility.
+                </div>
+
+                <div class="mt-4">
+                    <a href="/member/profile" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

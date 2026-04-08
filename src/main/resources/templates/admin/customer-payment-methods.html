@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment Methods | Chezan Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --danger: #ef4444;
+            --danger-soft: #fee2e2;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+        }
+
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        body {
+            background: var(--neutral-50);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: var(--neutral-900);
+            color: white;
+            position: fixed;
+            width: 280px;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--neutral-800);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .sidebar-brand h5 {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            margin: 0;
+        }
+
+        .sidebar-brand small {
+            color: var(--neutral-500);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: var(--neutral-400);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-radius: 0 8px 8px 0;
+            margin-right: 1rem;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .sidebar-menu i { width: 24px; font-size: 1rem; }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--neutral-800);
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-weight: 600;
+            font-size: 1.75rem;
+            color: var(--neutral-800);
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--neutral-800);
+            margin: 0;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .payment-method-card {
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .payment-method-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .payment-method-card.default {
+            border-color: var(--success);
+            background: var(--success-soft);
+        }
+
+        .default-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--neutral-100);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--neutral-600);
+        }
+
+        .card-icon.visa { color: #1a1f71; }
+        .card-icon.mastercard { color: #eb001b; }
+        .card-icon.amex { color: #016fd0; }
+
+        .btn-outline-secondary {
+            border-color: var(--neutral-200);
+            color: var(--neutral-600);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .btn-outline-secondary:hover {
+            border-color: var(--neutral-300);
+            color: var(--neutral-800);
+            background: var(--neutral-50);
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-outline-danger {
+            border-color: var(--danger);
+            color: var(--danger);
+            font-weight: 500;
+        }
+
+        .btn-outline-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+
+        .alert-success { background: var(--success-soft); color: #047857; }
+        .alert-danger { background: var(--danger-soft); color: #991b1b; }
+        .alert-info { background: var(--primary-soft); color: #1d4ed8; }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--neutral-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: var(--neutral-400);
+        }
+
+        .security-notice {
+            background: var(--primary-soft);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .security-notice i {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
+            <div>
+                <h5>Chezan</h5>
+                <small>Admin Portal</small>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/admin/customers" class="active"><i class="fas fa-users"></i> Customers</a></li>
+            <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+            <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="/logout" class="d-flex align-items-center text-decoration-none" style="color: var(--neutral-400);">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header animate-in">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <a th:href="@{/admin/customers/{id}(id=${customer.id})}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h1>Payment Methods</h1>
+                        <p class="mb-0 text-muted" th:text="${customer.firstName + ' ' + customer.lastName}">Customer Name</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success animate-in mb-4" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger animate-in mb-4" th:text="${error}"></div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Payment Methods List -->
+                <div class="card animate-in delay-1">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="card-title"><i class="fas fa-credit-card me-2 text-primary"></i>Saved Payment Methods</h6>
+                        <span class="badge bg-light text-dark" th:text="${#lists.size(paymentMethods)} + ' cards'">0 cards</span>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(paymentMethods)}" class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-credit-card"></i></div>
+                            <h6 class="text-muted">No Payment Methods</h6>
+                            <p class="text-muted small">This customer hasn't added any payment methods yet.</p>
+                        </div>
+
+                        <div th:each="pm : ${paymentMethods}" class="payment-method-card" th:classappend="${pm.isDefault} ? 'default' : ''">
+                            <span th:if="${pm.isDefault}" class="default-badge">Default</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="card-icon">
+                                    <i class="fab" th:class="${pm.brand != null && pm.brand.toLowerCase().contains('visa')} ? 'fa-cc-visa visa' : (${pm.brand != null && pm.brand.toLowerCase().contains('master')} ? 'fa-cc-mastercard mastercard' : (${pm.brand != null && pm.brand.toLowerCase().contains('amex')} ? 'fa-cc-amex amex' : 'fa-credit-card'))"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1" th:text="${pm.brand} ?: 'Card'">Card Brand</h6>
+                                    <p class="mb-0 text-muted" th:if="${pm.cardLastFour}">
+                                        <span class="font-monospace">**** </span><span th:text="${pm.cardLastFour}">1234</span>
+                                    </p>
+                                    <p class="mb-0 text-muted small" th:if="${pm.cardExpirationMonth}">
+                                        Expires <span th:text="${pm.cardExpirationMonth + '/' + pm.cardExpirationYear}">12/25</span>
+                                    </p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <form th:unless="${pm.isDefault}" th:action="@{/admin/customers/{userId}/payment-methods/{id}/default(userId=${customer.id},id=${pm.id})}" method="post">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">Set Default</button>
+                                    </form>
+                                    <form th:action="@{/admin/customers/{userId}/payment-methods/{id}/remove(userId=${customer.id},id=${pm.id})}" method="post">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remove this payment method?')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="animate-in delay-2">
+                    <div class="security-notice">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <h6 class="mb-1">Secure Payment Processing</h6>
+                            <p class="mb-0 text-muted small">All payment information is securely stored and processed through our PCI-compliant payment gateway.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Customer Info -->
+                <div class="card animate-in delay-1">
+                    <div class="card-header">
+                        <h6 class="card-title">Customer Info</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="customer-avatar" th:text="${#strings.substring(customer.firstName,0,1) + #strings.substring(customer.lastName,0,1)}">JD</div>
+                            <div>
+                                <h6 class="mb-0" th:text="${customer.firstName + ' ' + customer.lastName}">John Doe</h6>
+                                <small class="text-muted" th:text="${customer.email}">john@example.com</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Default Payment Method</small>
+                            <span th:if="${#lists.isEmpty(paymentMethods) || paymentMethods.?[isDefault].isEmpty()}" class="text-muted">None set</span>
+                            <span th:unless="${#lists.isEmpty(paymentMethods) || paymentMethods.?[isDefault].isEmpty()}" th:text="${paymentMethods.?[isDefault][0].brand + ' ****' + paymentMethods.?[isDefault][0].cardLastFour}">Card</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="card animate-in delay-2">
+                    <div class="card-header">
+                        <h6 class="card-title">Quick Links</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/admin/customers/{id}(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-user me-2"></i>View Profile
+                            </a>
+                            <a th:href="@{/admin/customers/{id}/subscriptions(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-sync-alt me-2"></i>Manage Subscriptions
+                            </a>
+                            <a th:href="@{/admin/customers/{id}/billing(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>Billing History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

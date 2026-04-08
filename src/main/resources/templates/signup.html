@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Account | Chezan Fitness</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+        }
+
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        body {
+            background: var(--neutral-50);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .signup-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .signup-graphic {
+            flex: 0 0 400px;
+            background: linear-gradient(135deg, var(--neutral-900) 0%, var(--neutral-800) 50%, var(--primary-dark) 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .signup-graphic::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/><circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/><circle cx="50" cy="50" r="20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/></svg>');
+            background-size: 400px;
+            opacity: 0.5;
+        }
+
+        .graphic-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .graphic-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            margin: 0 auto 2rem;
+            box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.5);
+        }
+
+        .graphic-content h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .graphic-content p {
+            color: var(--neutral-400);
+            font-size: 1.1rem;
+        }
+
+        .benefits-list {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .benefit-item i {
+            width: 24px;
+            height: 24px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .signup-form-section {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .signup-header {
+            margin-bottom: 2rem;
+        }
+
+        .signup-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--neutral-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .signup-header p {
+            color: var(--neutral-500);
+            font-size: 0.95rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--neutral-700);
+            font-size: 0.875rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 1px solid var(--neutral-200);
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            font-weight: 600;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .membership-option {
+            border: 2px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            height: 100%;
+        }
+
+        .membership-option:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .membership-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .membership-option input[type="radio"] {
+            display: none;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: var(--primary-soft);
+            color: #1d4ed8;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--neutral-400);
+            font-size: 0.875rem;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .divider::before {
+            margin-right: 1rem;
+        }
+
+        .divider::after {
+            margin-left: 1rem;
+        }
+
+        .login-link {
+            text-align: center;
+            color: var(--neutral-500);
+            font-size: 0.9rem;
+        }
+
+        .login-link a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--neutral-800);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .signup-container {
+                flex-direction: column;
+                max-width: 600px;
+            }
+
+            .signup-graphic {
+                flex: none;
+                padding: 2rem;
+                min-height: auto;
+            }
+
+            .graphic-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .graphic-content h2 {
+                font-size: 1.25rem;
+            }
+
+            .benefits-list {
+                display: none;
+            }
+
+            .signup-form-section {
+                padding: 2rem;
+                max-height: none;
+            }
+        }
+
+        /* Address Suggestions Dropdown */
+        .address-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+
+        .address-suggestions .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--neutral-100);
+            transition: background-color 0.15s;
+        }
+
+        .address-suggestions .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .address-suggestions .suggestion-item:hover {
+            background-color: var(--primary-soft);
+        }
+
+        .address-suggestions .suggestion-item .main-text {
+            font-weight: 500;
+            color: var(--neutral-800);
+        }
+
+        .address-suggestions .suggestion-item .sub-text {
+            font-size: 0.85rem;
+            color: var(--neutral-500);
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <!-- Left Side - Graphic -->
+        <div class="signup-graphic d-none d-lg-flex">
+            <div class="graphic-content">
+                <div class="graphic-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h2>Start Your Journey</h2>
+                <p>Join thousands of members achieving their fitness goals</p>
+                <div class="benefits-list">
+                    <div class="benefit-item">
+                        <i class="fas fa-check"></i>
+                        <span>No hidden fees</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check"></i>
+                        <span>Cancel anytime</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check"></i>
+                        <span>Free trial available</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="signup-form-section">
+            <div class="signup-header">
+                <h1>Create Your Account</h1>
+                <p>Fill in your details to get started with Chezan Fitness</p>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+            <div th:if="${errors}" class="alert alert-danger mb-3">
+                <ul class="mb-0">
+                    <li th:each="err : ${errors}" th:text="${err.defaultMessage}"></li>
+                </ul>
+            </div>
+
+            <form th:action="@{/api/auth/signup}" th:object="${signupRequest}" method="post">
+                <!-- Personal Information -->
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" th:field="*{firstName}" class="form-control" placeholder="John" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" th:field="*{lastName}" class="form-control" placeholder="Doe" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" th:field="*{email}" class="form-control" placeholder="john@example.com" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Phone *</label>
+                        <input type="tel" id="phone" th:field="*{phone}" class="form-control" placeholder="(555) 123-4567" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Password *</label>
+                        <input type="password" th:field="*{password}" class="form-control" placeholder="Min 8 characters" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" th:field="*{dateOfBirth}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Gender</label>
+                        <select th:field="*{gender}" class="form-select">
+                            <option value="">Prefer not to say</option>
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="section-title mt-4">
+                    <i class="fas fa-phone-alt"></i>
+                    Emergency Contact <span class="text-muted fw-normal">(Optional)</span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Emergency Contact Name</label>
+                        <input type="text" th:field="*{emergencyContactName}" class="form-control" placeholder="Jane Doe">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Emergency Contact Phone</label>
+                        <input type="tel" id="emergencyContactPhone" th:field="*{emergencyContactPhone}" class="form-control" placeholder="(555) 987-6543">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Relationship</label>
+                    <input type="text" th:field="*{emergencyContactRelationship}" class="form-control" placeholder="Spouse, Parent, Sibling, etc.">
+                </div>
+
+                <!-- Billing Address -->
+                <div class="section-title mt-4">
+                    <i class="fas fa-receipt"></i>
+                    Billing Information
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Bill To Name <span class="text-muted">(optional)</span></label>
+                    <input type="text" th:field="*{billToName}" class="form-control" placeholder="John Doe or Company Name">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Address Line 1 *</label>
+                    <div class="position-relative">
+                        <input type="text" th:field="*{address1}" id="address1" class="form-control" placeholder="Start typing your address..." required autocomplete="off">
+                        <div id="addressSuggestions" class="address-suggestions" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" th:field="*{address2}" class="form-control" placeholder="Apt 4B">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">City *</label>
+                        <input type="text" th:field="*{city}" id="city" class="form-control" required list="cityList">
+                        <datalist id="cityList"></datalist>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">State *</label>
+                        <select th:field="*{state}" id="state" class="form-select" required>
+                            <option value="">Select State</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Connecticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                            <option value="IA">Iowa</option>
+                            <option value="KS">Kansas</option>
+                            <option value="KY">Kentucky</option>
+                            <option value="LA">Louisiana</option>
+                            <option value="ME">Maine</option>
+                            <option value="MD">Maryland</option>
+                            <option value="MA">Massachusetts</option>
+                            <option value="MI">Michigan</option>
+                            <option value="MN">Minnesota</option>
+                            <option value="MS">Mississippi</option>
+                            <option value="MO">Missouri</option>
+                            <option value="MT">Montana</option>
+                            <option value="NE">Nebraska</option>
+                            <option value="NV">Nevada</option>
+                            <option value="NH">New Hampshire</option>
+                            <option value="NJ">New Jersey</option>
+                            <option value="NM">New Mexico</option>
+                            <option value="NY">New York</option>
+                            <option value="NC">North Carolina</option>
+                            <option value="ND">North Dakota</option>
+                            <option value="OH">Ohio</option>
+                            <option value="OK">Oklahoma</option>
+                            <option value="OR">Oregon</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="RI">Rhode Island</option>
+                            <option value="SC">South Carolina</option>
+                            <option value="SD">South Dakota</option>
+                            <option value="TN">Tennessee</option>
+                            <option value="TX">Texas</option>
+                            <option value="UT">Utah</option>
+                            <option value="VT">Vermont</option>
+                            <option value="VA">Virginia</option>
+                            <option value="WA">Washington</option>
+                            <option value="WV">West Virginia</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="WY">Wyoming</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ZIP Code *</label>
+                        <input type="text" th:field="*{zipCode}" id="zipCode" class="form-control" required maxlength="10" placeholder="12345">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Country *</label>
+                    <select th:field="*{country}" class="form-select" required>
+                        <option value="United States">United States</option>
+                        <option value="Canada">Canada</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Australia">Australia</option>
+                    </select>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" th:field="*{sameAsBillTo}" id="sameAsBillTo" checked>
+                    <label class="form-check-label" for="sameAsBillTo">
+                        Sold To address is the same as Bill To address
+                    </label>
+                </div>
+
+                <!-- Sold To Section -->
+                <div id="soldToSection" style="display: none;">
+                    <div class="section-title">
+                        <i class="fas fa-truck"></i>
+                        Sold To Address
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sold To Name</label>
+                        <input type="text" th:field="*{soldToName}" class="form-control" placeholder="Jane Doe or Company Name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Address Line 1</label>
+                        <input type="text" th:field="*{soldToAddress1}" class="form-control" placeholder="456 Delivery Ave">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Address Line 2</label>
+                        <input type="text" th:field="*{soldToAddress2}" class="form-control" placeholder="Suite 100">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" th:field="*{soldToCity}" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">State</label>
+                            <input type="text" th:field="*{soldToState}" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">ZIP Code</label>
+                            <input type="text" th:field="*{soldToZipCode}" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Country</label>
+                        <select th:field="*{soldToCountry}" class="form-select">
+                            <option value="">Select Country</option>
+                            <option value="United States">United States</option>
+                            <option value="Canada">Canada</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="Australia">Australia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Plan Selection -->
+                <div class="section-title mt-4">
+                    <i class="fas fa-crown"></i>
+                    Select Your Plan
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4" th:each="membership : ${memberships}">
+                        <label class="membership-option w-100">
+                            <input type="radio" th:field="*{ratePlanId}" th:value="${membership.ratePlans[0].id}" name="ratePlanId" required>
+                            <div class="text-center">
+                                <h6 class="fw-semibold" th:text="${membership.name}">Basic</h6>
+                                <p class="text-primary fw-bold mb-1">$<span th:text="${#numbers.formatDecimal(membership.ratePlans[0].price, 0, 2)}">29.99</span>/mo</p>
+                                <small class="text-muted" th:text="${membership.description}">Description</small>
+                            </div>
+                        </label>
+                    </div>
+                    <!-- Default option if no memberships -->
+                    <div class="col-md-4" th:if="${#lists.isEmpty(memberships)}">
+                        <label class="membership-option w-100">
+                            <input type="radio" name="ratePlanId" value="1" required>
+                            <div class="text-center">
+                                <h6 class="fw-semibold">Basic Membership</h6>
+                                <p class="text-primary fw-bold mb-1">$29.99/mo</p>
+                                <small class="text-muted">Full gym access</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Payment information will be collected securely after account creation.
+                </div>
+
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" th:field="*{termsAccepted}" id="termsAccepted" required>
+                    <label class="form-check-label" for="termsAccepted">
+                        I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> and <a href="#" class="text-decoration-none">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="divider">or</div>
+
+            <div class="login-link">
+                Already a member? <a th:href="@{/login}">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add selection styling to radio buttons
+        document.querySelectorAll('.membership-option input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.membership-option').forEach(opt => opt.classList.remove('selected'));
+                this.closest('.membership-option').classList.add('selected');
+            });
+        });
+
+        // Toggle Sold To section based on checkbox
+        const sameAsBillToCheckbox = document.getElementById('sameAsBillTo');
+        const soldToSection = document.getElementById('soldToSection');
+
+        sameAsBillToCheckbox.addEventListener('change', function() {
+            soldToSection.style.display = this.checked ? 'none' : 'block';
+        });
+
+        // Phone number formatting
+        function formatPhoneNumber(value) {
+            // Remove all non-digit characters
+            const digits = value.replace(/\D/g, '');
+
+            // Format as (XXX) XXX-XXXX
+            if (digits.length <= 3) {
+                return digits;
+            } else if (digits.length <= 6) {
+                return '(' + digits.substring(0, 3) + ') ' + digits.substring(3);
+            } else {
+                return '(' + digits.substring(0, 3) + ') ' + digits.substring(3, 6) + '-' + digits.substring(6, 10);
+            }
+        }
+
+        // Apply formatting to phone inputs
+        const phoneInputs = ['phone', 'emergencyContactPhone'];
+        phoneInputs.forEach(function(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function(e) {
+                    e.target.value = formatPhoneNumber(e.target.value);
+                });
+                // Format on blur for consistent formatting
+                input.addEventListener('blur', function(e) {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    if (digits.length === 10) {
+                        e.target.value = formatPhoneNumber(digits);
+                    }
+                });
+            }
+        });
+
+        // Address autocomplete - auto-fill city/state based on ZIP code
+        const zipCodeInput = document.querySelector('input[name="zipCode"]');
+        const cityInput = document.querySelector('input[name="city"]');
+        const stateInput = document.querySelector('input[name="state"]');
+        const countryInput = document.querySelector('input[name="country"]');
+
+        // Basic US ZIP code to city/state mapping (sample data)
+        const zipCodeData = {
+            '10001': { city: 'New York', state: 'NY' },
+            '10002': { city: 'New York', state: 'NY' },
+            '10003': { city: 'New York', state: 'NY' },
+            '90210': { city: 'Beverly Hills', state: 'CA' },
+            '90211': { city: 'Beverly Hills', state: 'CA' },
+            '90212': { city: 'Beverly Hills', state: 'CA' },
+            '94102': { city: 'San Francisco', state: 'CA' },
+            '94103': { city: 'San Francisco', state: 'CA' },
+            '94105': { city: 'San Francisco', state: 'CA' },
+            '60601': { city: 'Chicago', state: 'IL' },
+            '60602': { city: 'Chicago', state: 'IL' },
+            '60603': { city: 'Chicago', state: 'IL' },
+            '77001': { city: 'Houston', state: 'TX' },
+            '77002': { city: 'Houston', state: 'TX' },
+            '77003': { city: 'Houston', state: 'TX' },
+            '33101': { city: 'Miami', state: 'FL' },
+            '33102': { city: 'Miami', state: 'FL' },
+            '33139': { city: 'Miami Beach', state: 'FL' },
+            '02101': { city: 'Boston', state: 'MA' },
+            '02102': { city: 'Boston', state: 'MA' },
+            '02108': { city: 'Boston', state: 'MA' },
+            '19101': { city: 'Philadelphia', state: 'PA' },
+            '19102': { city: 'Philadelphia', state: 'PA' },
+            '19103': { city: 'Philadelphia', state: 'PA' },
+            '98101': { city: 'Seattle', state: 'WA' },
+            '98102': { city: 'Seattle', state: 'WA' },
+            '98103': { city: 'Seattle', state: 'WA' },
+            '85001': { city: 'Phoenix', state: 'AZ' },
+            '85002': { city: 'Phoenix', state: 'AZ' },
+            '85003': { city: 'Phoenix', state: 'AZ' }
+        };
+
+        // Enhanced US cities database by state
+        const citiesByState = {
+            'AL': ['Birmingham', 'Montgomery', 'Mobile', 'Huntsville', 'Tuscaloosa', 'Hoover', 'Dothan', 'Auburn'],
+            'AK': ['Anchorage', 'Fairbanks', 'Juneau', 'Sitka', 'Ketchikan'],
+            'AZ': ['Phoenix', 'Tucson', 'Mesa', 'Chandler', 'Scottsdale', 'Glendale', 'Peoria', 'Tempe'],
+            'AR': ['Little Rock', 'Fort Smith', 'Fayetteville', 'Springdale', 'Jonesboro'],
+            'CA': ['Los Angeles', 'San Diego', 'San Jose', 'San Francisco', 'Fresno', 'Sacramento', 'Long Beach', 'Oakland', 'Bakersfield', 'Anaheim', 'Santa Ana', 'Riverside', 'Stockton', 'Irvine'],
+            'CO': ['Denver', 'Colorado Springs', 'Aurora', 'Fort Collins', 'Lakewood', 'Thornton', 'Pueblo', 'Westminster'],
+            'CT': ['Bridgeport', 'New Haven', 'Hartford', 'Stamford', 'Waterbury', 'Norwalk', 'Danbury'],
+            'DE': ['Wilmington', 'Dover', 'Newark', 'Middletown'],
+            'FL': ['Jacksonville', 'Miami', 'Tampa', 'Orlando', 'St. Petersburg', 'Hialeah', 'Tallahassee', 'Fort Lauderdale', 'Port St. Lucie', 'Cape Coral', 'Pembroke Pines', 'Hollywood'],
+            'GA': ['Atlanta', 'Columbus', 'Augusta', 'Macon', 'Savannah', 'Athens', 'Sandy Springs', 'Roswell', 'Johns Creek', 'Albany'],
+            'HI': ['Honolulu', 'Pearl City', 'Hilo', 'Kailua', 'Waipahu'],
+            'ID': ['Boise', 'Nampa', 'Meridian', 'Idaho Falls', 'Pocatello', 'Caldwell'],
+            'IL': ['Chicago', 'Aurora', 'Joliet', 'Naperville', 'Peoria', 'Rockford', 'Elgin', 'Springfield', 'Champaign'],
+            'IN': ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel', 'Fishers', 'Bloomington', 'Hammond'],
+            'IA': ['Des Moines', 'Cedar Rapids', 'Davenport', 'Sioux City', 'Iowa City', 'Waterloo', 'Ames'],
+            'KS': ['Wichita', 'Overland Park', 'Kansas City', 'Topeka', 'Olathe', 'Lawrence', 'Shawnee'],
+            'KY': ['Louisville', 'Lexington', 'Bowling Green', 'Owensboro', 'Covington'],
+            'LA': ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette', 'Lake Charles', 'Kenner', 'Bossier City'],
+            'ME': ['Portland', 'Lewiston', 'Bangor', 'South Portland', 'Auburn', 'Biddeford'],
+            'MD': ['Baltimore', 'Frederick', 'Rockville', 'Gaithersburg', 'Bowie', 'Hagerstown', 'Annapolis'],
+            'MA': ['Boston', 'Worcester', 'Springfield', 'Cambridge', 'Lowell', 'Brockton', 'New Bedford', 'Fall River', 'Quincy', 'Lynn'],
+            'MI': ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Ann Arbor', 'Lansing', 'Flint', 'Dearborn', 'Livonia', 'Clinton'],
+            'MN': ['Minneapolis', 'St. Paul', 'Rochester', 'Duluth', 'Bloomington', 'Plymouth', 'Brooklyn Park'],
+            'MS': ['Jackson', 'Gulfport', 'Southaven', 'Biloxi', 'Hattiesburg', 'Olive Branch'],
+            'MO': ['Kansas City', 'St. Louis', 'Springfield', 'Independence', 'Columbia', 'Lee\'s Summit', 'O\'Fallon'],
+            'MT': ['Billings', 'Missoula', 'Great Falls', 'Bozeman', 'Butte', 'Helena'],
+            'NE': ['Omaha', 'Lincoln', 'Bellevue', 'Grand Island', 'Kearney', 'Fremont'],
+            'NV': ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas', 'Sparks', 'Carson City'],
+            'NH': ['Manchester', 'Nashua', 'Concord', 'Derry', 'Dover', 'Rochester'],
+            'NJ': ['Newark', 'Jersey City', 'Paterson', 'Elizabeth', 'Edison', 'Woodbridge', 'Toms River', 'Hamilton', 'Trenton', 'Clifton'],
+            'NM': ['Albuquerque', 'Las Cruces', 'Rio Rancho', 'Santa Fe', 'Roswell', 'Farmington'],
+            'NY': ['New York City', 'Buffalo', 'Rochester', 'Yonkers', 'Syracuse', 'Albany', 'New Rochelle', 'Mount Vernon', 'Schenectady', 'Utica'],
+            'NC': ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary', 'Wilmington', 'High Point', 'Greenville'],
+            'ND': ['Fargo', 'Bismarck', 'Grand Forks', 'Minot', 'West Fargo'],
+            'OH': ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton', 'Parma', 'Canton', 'Youngstown', 'Lorain'],
+            'OK': ['Oklahoma City', 'Tulsa', 'Norman', 'Broken Arrow', 'Lawton', 'Edmond', 'Midwest City'],
+            'OR': ['Portland', 'Salem', 'Eugene', 'Gresham', 'Hillsboro', 'Beaverton', 'Bend', 'Medford', 'Springfield'],
+            'PA': ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton', 'Bethlehem', 'Lancaster', 'Harrisburg'],
+            'RI': ['Providence', 'Warwick', 'Cranston', 'Pawtucket', 'East Providence', 'Woonsocket'],
+            'SC': ['Columbia', 'Charleston', 'North Charleston', 'Mount Pleasant', 'Rock Hill', 'Greenville', 'Summerville'],
+            'SD': ['Sioux Falls', 'Rapid City', 'Aberdeen', 'Brookings', 'Watertown', 'Mitchell'],
+            'TN': ['Nashville', 'Memphis', 'Knoxville', 'Chattanooga', 'Clarksville', 'Murfreesboro', 'Franklin', 'Jackson'],
+            'TX': ['Houston', 'San Antonio', 'Dallas', 'Austin', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Laredo', 'Lubbock', 'Irving', 'Garland', 'Frisco', 'McKinney', 'Amarillo', 'Grand Prairie'],
+            'UT': ['Salt Lake City', 'West Valley City', 'Provo', 'West Jordan', 'Orem', 'Sandy', 'Ogden', 'St. George', 'Layton'],
+            'VT': ['Burlington', 'South Burlington', 'Rutland', 'Barre', 'Montpelier', 'St. Albans'],
+            'VA': ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Arlington', 'Richmond', 'Newport News', 'Alexandria', 'Hampton', 'Roanoke', 'Portsmouth'],
+            'WA': ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue', 'Kent', 'Everett', 'Renton', 'Yakima', 'Federal Way', 'Spokane Valley'],
+            'WV': ['Charleston', 'Huntington', 'Parkersburg', 'Morgantown', 'Wheeling', 'Weirton'],
+            'WI': ['Milwaukee', 'Madison', 'Green Bay', 'Kenosha', 'Racine', 'Appleton', 'Waukesha', 'Oshkosh', 'West Allis'],
+            'WY': ['Cheyenne', 'Casper', 'Laramie', 'Gillette', 'Rock Springs']
+        };
+
+        // Address suggestions data - common street patterns
+        const streetSuggestions = [
+            'Main St', 'First St', 'Second St', 'Third St', 'Fourth St', 'Fifth St',
+            'Park Ave', 'Oak St', 'Pine St', 'Maple St', 'Cedar St', 'Elm St',
+            'Washington St', 'Lake St', 'Hill St', 'Forest Ave', 'River Rd', 'Sunset Blvd',
+            'Highland Ave', 'Valley Rd', 'Spring St', 'Court St', 'Church St', 'School St'
+        ];
+
+        // Get DOM elements
+        const address1Input = document.getElementById('address1');
+        const cityInput = document.getElementById('city');
+        const stateSelect = document.getElementById('state');
+        const zipInput = document.getElementById('zipCode');
+        const suggestionsDiv = document.getElementById('addressSuggestions');
+        const cityDatalist = document.getElementById('cityList');
+
+        // Update city suggestions when state is selected
+        if (stateSelect) {
+            stateSelect.addEventListener('change', function() {
+                const selectedState = this.value;
+                updateCitySuggestions(selectedState);
+            });
+        }
+
+        function updateCitySuggestions(stateCode) {
+            if (!cityDatalist) return;
+            cityDatalist.innerHTML = '';
+
+            if (stateCode && citiesByState[stateCode]) {
+                citiesByState[stateCode].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    cityDatalist.appendChild(option);
+                });
+            }
+        }
+
+        // Address autocomplete with suggestions dropdown
+        if (address1Input && suggestionsDiv) {
+            let selectedIndex = -1;
+            let currentSuggestions = [];
+
+            address1Input.addEventListener('input', function(e) {
+                const value = e.target.value.toLowerCase();
+                selectedIndex = -1;
+
+                if (value.length < 2) {
+                    suggestionsDiv.style.display = 'none';
+                    return;
+                }
+
+                // Get suggestions based on input
+                currentSuggestions = [];
+
+                // Add street suggestions
+                streetSuggestions.forEach(street => {
+                    if (street.toLowerCase().includes(value)) {
+                        currentSuggestions.push({
+                            main: street,
+                            sub: 'Common street name'
+                        });
+                    }
+                });
+
+                // Show suggestions
+                if (currentSuggestions.length > 0) {
+                    renderSuggestions(currentSuggestions);
+                } else {
+                    suggestionsDiv.style.display = 'none';
+                }
+            });
+
+            function renderSuggestions(suggestions) {
+                suggestionsDiv.innerHTML = '';
+                suggestions.forEach((suggestion, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerHTML = `
+                        <div class="main-text">${suggestion.main}</div>
+                        <div class="sub-text">${suggestion.sub}</div>
+                    `;
+                    div.addEventListener('click', () => selectSuggestion(index));
+                    suggestionsDiv.appendChild(div);
+                });
+                suggestionsDiv.style.display = 'block';
+            }
+
+            function selectSuggestion(index) {
+                if (currentSuggestions[index]) {
+                    address1Input.value = currentSuggestions[index].main;
+                    suggestionsDiv.style.display = 'none';
+                    address1Input.focus();
+                }
+            }
+
+            // Keyboard navigation
+            address1Input.addEventListener('keydown', function(e) {
+                const items = suggestionsDiv.querySelectorAll('.suggestion-item');
+                if (suggestionsDiv.style.display === 'none' || items.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, 0);
+                    updateSelection(items);
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    selectSuggestion(selectedIndex);
+                } else if (e.key === 'Escape') {
+                    suggestionsDiv.style.display = 'none';
+                }
+            });
+
+            function updateSelection(items) {
+                items.forEach((item, i) => {
+                    item.style.backgroundColor = i === selectedIndex ? 'var(--primary-soft)' : '';
+                });
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!address1Input.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.style.display = 'none';
+                }
+            });
+        }
+
+        // ZIP code to city/state lookup
+        if (zipInput) {
+            zipInput.addEventListener('blur', function(e) {
+                const zip = e.target.value.trim();
+                if (zip.length === 5 && zipCodeData[zip]) {
+                    const data = zipCodeData[zip];
+                    if (cityInput && !cityInput.value) {
+                        cityInput.value = data.city;
+                    }
+                    if (stateSelect && !stateSelect.value) {
+                        stateSelect.value = data.state;
+                        updateCitySuggestions(data.state);
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

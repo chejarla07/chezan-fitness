@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customer Subscriptions | Chezan Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --danger: #ef4444;
+            --danger-soft: #fee2e2;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+        }
+
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        body {
+            background: var(--neutral-50);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: var(--neutral-900);
+            color: white;
+            position: fixed;
+            width: 280px;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--neutral-800);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .sidebar-brand h5 {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            margin: 0;
+        }
+
+        .sidebar-brand small {
+            color: var(--neutral-500);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: var(--neutral-400);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-radius: 0 8px 8px 0;
+            margin-right: 1rem;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .sidebar-menu i { width: 24px; font-size: 1rem; }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--neutral-800);
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-weight: 600;
+            font-size: 1.75rem;
+            color: var(--neutral-800);
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--neutral-800);
+            margin: 0;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .subscription-card {
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .subscription-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .subscription-card.active {
+            border-color: var(--success);
+            background: var(--success-soft);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+
+        .status-badge.active {
+            background: var(--success-soft);
+            color: #047857;
+        }
+
+        .status-badge.cancelled {
+            background: var(--danger-soft);
+            color: #991b1b;
+        }
+
+        .status-badge.pending {
+            background: var(--warning-soft);
+            color: #92400e;
+        }
+
+        .btn-outline-secondary {
+            border-color: var(--neutral-200);
+            color: var(--neutral-600);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .btn-outline-secondary:hover {
+            border-color: var(--neutral-300);
+            color: var(--neutral-800);
+            background: var(--neutral-50);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            font-weight: 600;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+
+        .alert-success { background: var(--success-soft); color: #047857; }
+        .alert-danger { background: var(--danger-soft); color: #991b1b; }
+        .alert-info { background: var(--primary-soft); color: #1d4ed8; }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--neutral-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: var(--neutral-400);
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--neutral-200);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--neutral-700);
+            font-size: 0.875rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--neutral-200);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .plan-option {
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .plan-option:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .plan-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
+            <div>
+                <h5>Chezan</h5>
+                <small>Admin Portal</small>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/admin/customers" class="active"><i class="fas fa-users"></i> Customers</a></li>
+            <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+            <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="/logout" class="d-flex align-items-center text-decoration-none" style="color: var(--neutral-400);">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header animate-in">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <a th:href="@{/admin/customers/{id}(id=${customer.id})}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h1>Manage Subscriptions</h1>
+                        <p class="mb-0 text-muted" th:text="${customer.firstName + ' ' + customer.lastName}">Customer Name</p>
+                    </div>
+                </div>
+                <button th:if="${customer.zuoraAccountNumber != null && !hasActiveSubscription}" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubscriptionModal">
+                    <i class="fas fa-plus me-2"></i>Add Subscription
+                </button>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success animate-in mb-4" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger animate-in mb-4" th:text="${error}"></div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Current Subscriptions -->
+                <div class="card animate-in delay-1">
+                    <div class="card-header">
+                        <h6 class="card-title"><i class="fas fa-crown me-2 text-primary"></i>Current Subscriptions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(subscriptions)}" class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-crown"></i></div>
+                            <h6 class="text-muted">No Active Subscriptions</h6>
+                            <p class="text-muted small">This customer doesn't have any subscriptions yet.</p>
+                        </div>
+
+                        <div th:each="sub : ${subscriptions}" class="subscription-card" th:classappend="${sub.status.name() == 'Active'} ? 'active' : ''">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <h5 class="mb-0" th:text="${sub.ratePlan?.name} ?: 'Unknown Plan'">Plan Name</h5>
+                                        <span class="status-badge" th:classappend="${sub.status.name() == 'Active'} ? 'active' : (${sub.status.name() == 'Cancelled'} ? 'cancelled' : 'pending')" th:text="${sub.status}">Status</span>
+                                    </div>
+                                    <p class="text-muted mb-2" th:text="${sub.zuoraSubscriptionNumber}">SUB-001</p>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-auto">
+                                            <small class="text-muted d-block">Start Date</small>
+                                            <span class="fw-semibold" th:text="${sub.termStartDate} ?: '--'">--</span>
+                                        </div>
+                                        <div class="col-auto" th:if="${sub.termEndDate}">
+                                            <small class="text-muted d-block">End Date</small>
+                                            <span class="fw-semibold" th:text="${sub.termEndDate}">--</span>
+                                        </div>
+                                        <div class="col-auto" th:if="${sub.ratePlan?.price != null}">
+                                            <small class="text-muted d-block">Price</small>
+                                            <span class="fw-semibold" th:text="'$' + ${#numbers.formatDecimal(sub.ratePlan.price, 0, 2)}">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div th:if="${sub.status.name() == 'Active'}" class="d-flex gap-2">
+                                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#upgradeModal" th:if="${!#lists.isEmpty(availablePlans)}">
+                                            <i class="fas fa-exchange-alt me-1"></i>Upgrade
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                            <i class="fas fa-ban me-1"></i>Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cancellation Options -->
+                            <div th:if="${sub.status.name() == 'Active' && cancellationOptions != null}" class="mt-3 pt-3 border-top">
+                                <small class="text-muted">Cancellation Options:</small>
+                                <div class="mt-2">
+                                    <span class="badge bg-light text-dark me-2">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        End of Term: <span th:text="${cancellationOptions.endOfTermDate} ?: 'N/A'">--</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Plans -->
+                <div class="card animate-in delay-2" th:if="${!#lists.isEmpty(availablePlans)}">
+                    <div class="card-header">
+                        <h6 class="card-title"><i class="fas fa-list me-2 text-success"></i>Available Plans</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6" th:each="plan : ${availablePlans}">
+                                <div class="plan-option">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1" th:text="${plan.name}">Plan Name</h6>
+                                            <p class="text-muted small mb-2" th:text="${plan.description}">Description</p>
+                                        </div>
+                                        <span class="badge bg-primary" th:if="${!#lists.isEmpty(plan.ratePlans)}">
+                                            $<span th:text="${#numbers.formatDecimal(plan.ratePlans[0].price, 0, 2)}">0</span>/mo
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Customer Info -->
+                <div class="card animate-in delay-1">
+                    <div class="card-header">
+                        <h6 class="card-title">Customer Info</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="customer-avatar" th:text="${#strings.substring(customer.firstName,0,1) + #strings.substring(customer.lastName,0,1)}">JD</div>
+                            <div>
+                                <h6 class="mb-0" th:text="${customer.firstName + ' ' + customer.lastName}">John Doe</h6>
+                                <small class="text-muted" th:text="${customer.email}">john@example.com</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Account Status</small>
+                            <span th:if="${customer.zuoraAccountNumber != null}" class="status-badge active">
+                                <i class="fas fa-check-circle me-1"></i>Active
+                            </span>
+                            <span th:if="${customer.zuoraAccountNumber == null}" class="status-badge pending">
+                                <i class="fas fa-clock me-1"></i>Pending
+                            </span>
+                        </div>
+                        <div th:if="${customer.zuoraAccountNumber != null}">
+                            <small class="text-muted d-block">Account Number</small>
+                            <span class="fw-semibold" th:text="${customer.zuoraAccountNumber}">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="card animate-in delay-2">
+                    <div class="card-header">
+                        <h6 class="card-title">Quick Links</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/admin/customers/{id}(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-user me-2"></i>View Profile
+                            </a>
+                            <a th:href="@{/admin/customers/{id}/billing(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>Billing History
+                            </a>
+                            <a th:href="@{/admin/customers/{id}/payment-methods(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-credit-card me-2"></i>Payment Methods
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subscription Modal -->
+    <div class="modal fade" id="addSubscriptionModal" tabindex="-1" th:if="${customer.zuoraAccountNumber != null}">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add New Subscription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/customers/{id}/subscriptions/add(id=${customer.id})}" method="post">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Select a plan for <strong th:text="${customer.firstName + ' ' + customer.lastName}">Customer</strong>.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Plan *</label>
+                            <div class="row g-3">
+                                <div class="col-md-6" th:each="plan : ${availablePlans}">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="ratePlanId" th:value="${!#lists.isEmpty(plan.ratePlans)} ? ${plan.ratePlans[0].id} : 0" th:id="'plan_' + ${plan.id}" required>
+                                        <label class="form-check-label w-100" th:for="'plan_' + ${plan.id}">
+                                            <div class="card">
+                                                <div class="card-body py-2">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong th:text="${plan.name}">Plan</strong>
+                                                            <p class="mb-0 text-muted small" th:text="${plan.description}">Desc</p>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <span class="h5 text-primary" th:if="${!#lists.isEmpty(plan.ratePlans)}">$<span th:text="${#numbers.formatDecimal(plan.ratePlans[0].price, 0, 2)}">0</span></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Subscription</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade Modal -->
+    <div class="modal fade" id="upgradeModal" tabindex="-1" th:if="${!#lists.isEmpty(subscriptions)}">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i>Upgrade Subscription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/customers/{id}/subscriptions/upgrade(id=${customer.id})}" method="post">
+                    <input type="hidden" name="subscriptionId" th:value="${subscriptions[0].id}">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Upgrade plan for <strong th:text="${customer.firstName + ' ' + customer.lastName}">Customer</strong>.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select New Plan *</label>
+                            <div class="row g-3">
+                                <div class="col-md-6" th:each="plan : ${availablePlans}">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="newRatePlanId" th:value="${!#lists.isEmpty(plan.ratePlans)} ? ${plan.ratePlans[0].id} : 0" th:id="'upgrade_plan_' + ${plan.id}" required>
+                                        <label class="form-check-label w-100" th:for="'upgrade_plan_' + ${plan.id}">
+                                            <div class="card">
+                                                <div class="card-body py-2">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong th:text="${plan.name}">Plan</strong>
+                                                            <p class="mb-0 text-muted small" th:text="${plan.description}">Desc</p>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <span class="h5 text-primary" th:if="${!#lists.isEmpty(plan.ratePlans)}">$<span th:text="${#numbers.formatDecimal(plan.ratePlans[0].price, 0, 2)}">0</span></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Effective Date</label>
+                            <input type="date" name="effectiveDate" class="form-control">
+                            <div class="form-text">Leave empty for immediate effect.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Confirm Upgrade</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Modal -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" th:if="${!#lists.isEmpty(subscriptions)}">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-ban me-2 text-danger"></i>Cancel Subscription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/subscriptions/{id}/cancel(id=${subscriptions[0].id})}" method="post">
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Are you sure you want to cancel this subscription?
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Cancellation Reason</label>
+                            <select name="reason" class="form-select" required>
+                                <option value="">Select a reason...</option>
+                                <option value="Customer request">Customer Request</option>
+                                <option value="Switching to competitor">Switching to Competitor</option>
+                                <option value="Financial reasons">Financial Reasons</option>
+                                <option value="Not using service">Not Using Service</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" th:if="${cancellationOptions != null && cancellationOptions.endOfTermDate != null}">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="endOfTerm" value="true" id="endOfTermCheck">
+                                <label class="form-check-label" for="endOfTermCheck">
+                                    Cancel at end of term (<span th:text="${cancellationOptions.endOfTermDate}">--</span>)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
+                        <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

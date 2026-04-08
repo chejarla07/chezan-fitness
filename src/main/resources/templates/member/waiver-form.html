@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Liability Waiver | Chezan Fitness</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --primary-dark: #1d4ed8;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-500: #64748b;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+        }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--neutral-50); min-height: 100vh; }
+        .navbar { background: var(--neutral-800) !important; padding: 1rem 0; }
+        .navbar-brand { font-weight: 600; font-size: 1.25rem; color: white !important; }
+        .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--neutral-200); }
+        .page-header h1 { font-weight: 600; font-size: 1.75rem; color: var(--neutral-800); }
+        .card { background: white; border: 1px solid var(--neutral-200); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-header { background: transparent; border-bottom: 1px solid var(--neutral-200); padding: 1.25rem; }
+        .card-body { padding: 1.5rem; }
+        .waiver-text {
+            background: var(--neutral-100);
+            border-radius: 10px;
+            padding: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .signature-box {
+            border: 2px dashed var(--neutral-200);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            background: var(--neutral-50);
+            margin-bottom: 1rem;
+        }
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .form-control { border-radius: 10px; padding: 0.75rem 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/member/dashboard"><i class="fas fa-layer-group me-2"></i>Chezan</a>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="page-header">
+            <h1><i class="fas fa-file-contract me-2 text-primary"></i>Liability Waiver</h1>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger mb-4" th:text="${error}"></div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Please Read and Accept the Waiver</h5>
+            </div>
+            <div class="card-body">
+                <div class="waiver-text">
+                    <h5>ASSUMPTION OF RISK AND LIABILITY WAIVER</h5>
+                    <p><strong>Chezan Fitness</strong></p>
+
+                    <p>I, the undersigned, wish to participate in the fitness programs and use the facilities, equipment, and services offered by Chezan Fitness (hereinafter referred to as "the Facility"). I recognize that the programs and activities offered by the Facility may be strenuous and may subject me to inherent risks including, but not limited to:</p>
+
+                    <ul>
+                        <li>Accidents occurring during fitness activities</li>
+                        <li>Equipment failure or malfunction</li>
+                        <li>Injuries from the use of fitness equipment</li>
+                        <li>Slips, trips, and falls</li>
+                        <li>Heart attack, stroke, or other cardiovascular events</li>
+                        <li>Any other injuries, illnesses, or medical conditions</li>
+                    </ul>
+
+                    <p><strong>IN CONSIDERATION OF THE ABOVE, I HEREBY:</strong></p>
+
+                    <ol>
+                        <li><strong>Assume all risks:</strong> I voluntarily assume all risks associated with participation in fitness activities, including any injury, loss, or damage that may occur.</li>
+                        <li><strong>Release of liability:</strong> I release, waive, discharge, and covenant not to sue the Facility, its officers, employees, agents, and representatives from any and all liability, claims, demands, actions, and causes of action whatsoever arising out of or related to any loss, damage, or injury that may be sustained by me.</li>
+                        <li><strong>Medical fitness:</strong> I certify that I am physically fit and have no medical conditions that would prevent me from safely participating in fitness activities.</li>
+                        <li><strong>Indemnification:</strong> I agree to indemnify and hold harmless the Facility from any and all claims, actions, suits, costs, and damages arising from my participation.</li>
+                        <li><strong>Personal property:</strong> I understand that the Facility is not responsible for any lost, stolen, or damaged personal property.</li>
+                        <li><strong>Photo/video release:</strong> I grant permission to the Facility to use photographs and/or video of me for promotional purposes.</li>
+                    </ol>
+
+                    <p><strong>I HAVE READ AND UNDERSTOOD THIS WAIVER AND RELEASE OF LIABILITY.</strong> I understand that by accepting this waiver, I am giving up substantial rights. I sign this waiver voluntarily and with full knowledge of its significance.</p>
+
+                    <p class="text-muted mb-0"><em>Version: <span th:text="${waiverVersion}">2024-01</span></em></p>
+                </div>
+
+                <form th:action="@{/member/waiver}" th:object="${waiverRequest}" method="post">
+                    <input type="hidden" th:field="*{waiverVersion}" th:value="${waiverVersion}">
+
+                    <div class="mb-4">
+                        <label class="form-label">Type Your Full Name as Electronic Signature <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{signatureName}" class="form-control" placeholder="Your full legal name" required>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" th:field="*{agreedToWaiver}" id="agreedToWaiver" required>
+                        <label class="form-check-label" for="agreedToWaiver">
+                            <strong>I have read, understood, and agree to the terms of this waiver.</strong>
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Accept Waiver
+                        </button>
+                        <a href="/member/dashboard" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Health Questionnaire | Chezan Fitness</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --danger: #ef4444;
+            --danger-soft: #fee2e2;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-500: #64748b;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+        }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body {
+            background: var(--neutral-50);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: var(--neutral-800) !important;
+            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: white !important;
+        }
+        .navbar-nav .nav-link {
+            color: var(--neutral-500) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: white !important;
+            background: rgba(255,255,255,0.1);
+        }
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+        .page-header h1 {
+            font-weight: 600;
+            font-size: 1.75rem;
+            color: var(--neutral-800);
+        }
+        .card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 1.25rem;
+        }
+        .card-body { padding: 1.5rem; }
+        .question-item {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: var(--neutral-50);
+            border: 1px solid var(--neutral-200);
+        }
+        .question-item:hover {
+            background: var(--primary-soft);
+        }
+        .question-text {
+            font-weight: 500;
+            color: var(--neutral-700);
+            margin-bottom: 0.75rem;
+        }
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+        .alert-info {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+        .alert-warning {
+            background: var(--warning-soft);
+            color: #92400e;
+        }
+        .info-box {
+            background: var(--primary-soft);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .info-box i {
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/member/dashboard"><i class="fas fa-layer-group me-2"></i>Chezan</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/member/dashboard"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/member/profile"><i class="fas fa-user me-1"></i>Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/member/billing"><i class="fas fa-file-invoice-dollar me-1"></i>Billing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/member/subscriptions"><i class="fas fa-sync-alt me-1"></i>Subscriptions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="page-header">
+            <h1><i class="fas fa-heartbeat me-2 text-danger"></i>Health Questionnaire (PAR-Q)</h1>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger mb-4" th:text="${error}"></div>
+
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <strong>Please read each question carefully.</strong> This questionnaire helps ensure your safety during exercise. Answer honestly - it's for your protection.
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Physical Activity Readiness Questionnaire</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/member/parq}" th:object="${parqRequest}" method="post">
+                    <!-- Question 1 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-heart text-danger me-2"></i>
+                            Has a doctor ever said you have heart disease?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q1HeartDisease}" id="q1-no" value="false">
+                            <label class="form-check-label" for="q1-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q1HeartDisease}" id="q1-yes" value="true">
+                            <label class="form-check-label" for="q1-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-lungs text-warning me-2"></i>
+                            Do you feel chest pain during physical activity?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q2ChestPainActivity}" id="q2-no" value="false">
+                            <label class="form-check-label" for="q2-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q2ChestPainActivity}" id="q2-yes" value="true">
+                            <label class="form-check-label" for="q2-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-heartbeat text-danger me-2"></i>
+                            Do you feel chest pain when NOT doing physical activity?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q3ChestPainNoActivity}" id="q3-no" value="false">
+                            <label class="form-check-label" for="q3-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q3ChestPainNoActivity}" id="q3-yes" value="true">
+                            <label class="form-check-label" for="q3-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 4 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-balance-scale text-info me-2"></i>
+                            Do you lose balance because of dizziness or lose consciousness?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q4BalanceIssues}" id="q4-no" value="false">
+                            <label class="form-check-label" for="q4-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q4BalanceIssues}" id="q4-yes" value="true">
+                            <label class="form-check-label" for="q4-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 5 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-bone text-secondary me-2"></i>
+                            Do you have a bone or joint problem that could worsen with exercise?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q5BoneJointIssues}" id="q5-no" value="false">
+                            <label class="form-check-label" for="q5-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q5BoneJointIssues}" id="q5-yes" value="true">
+                            <label class="form-check-label" for="q5-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 6 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-pills text-primary me-2"></i>
+                            Are you on medication for blood pressure or a heart condition?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q6BloodPressureMeds}" id="q6-no" value="false">
+                            <label class="form-check-label" for="q6-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q6BloodPressureMeds}" id="q6-yes" value="true">
+                            <label class="form-check-label" for="q6-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 7 -->
+                    <div class="question-item">
+                        <div class="question-text">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            Do you know of any other reason you should not exercise?
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q7OtherReasons}" id="q7-no" value="false">
+                            <label class="form-check-label" for="q7-no">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{q7OtherReasons}" id="q7-yes" value="true">
+                            <label class="form-check-label" for="q7-yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="mb-4">
+                        <label class="form-label">Additional Notes (Optional)</label>
+                        <textarea th:field="*{additionalNotes}" class="form-control" rows="3" placeholder="Any other health conditions we should know about..."></textarea>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> If you answered "Yes" to any question, we recommend consulting with a healthcare provider before starting an exercise program. You can still use the facility.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Submit Questionnaire
+                        </button>
+                        <a href="/member/dashboard" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
