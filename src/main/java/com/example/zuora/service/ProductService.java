@@ -32,15 +32,15 @@ public class ProductService {
     }
 
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findAllWithRatePlans();
     }
 
     public List<Product> getActiveProducts() {
-        return productRepository.findByStatus(Product.Status.Active);
+        return productRepository.findByStatusWithRatePlans(Product.Status.Active);
     }
 
     public List<Product> getActiveProductsByCategory(Product.Category category) {
-        return productRepository.findByCategoryAndStatus(category, Product.Status.Active);
+        return productRepository.findByCategoryAndStatusWithRatePlans(category, Product.Status.Active);
     }
 
     public Product getProductById(Long id) {

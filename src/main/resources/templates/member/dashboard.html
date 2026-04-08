@@ -385,7 +385,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <small class="text-muted">Next Billing</small>
-                                        <div class="fw-semibold" th:text="${sub.termEndDate}">--</div>
+                                        <div class="fw-semibold" th:text="${sub.termEndDate != null} ? ${#temporals.format(sub.termEndDate, 'MMM dd, yyyy')} : 'N/A'">--</div>
                                     </div>
                                 </div>
                             </div>
@@ -406,15 +406,37 @@
                     <div class="card-body p-4">
                         <h6 class="text-muted mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
                         <div class="d-flex flex-column gap-2">
+                            <!-- Check In/Out -->
                             <a href="/member/check-in" class="quick-action">
                                 <div class="quick-action-icon">
-                                    <i class="fas fa-qrcode"></i>
+                                    <i class="fas" th:class="${isCheckedIn} ? 'fa-sign-out-alt' : 'fa-sign-in-alt'"></i>
                                 </div>
                                 <div class="quick-action-content">
                                     <h6 th:text="${isCheckedIn} ? 'Check Out' : 'Check In'">Check In</h6>
                                     <p th:text="${isCheckedIn} ? 'End your workout session' : 'Start your workout session'">Start your workout session</p>
                                 </div>
                             </a>
+                            <!-- PAR-Q Health Questionnaire -->
+                            <a href="/member/parq" class="quick-action">
+                                <div class="quick-action-icon" th:classappend="${hasCompletedParq} ? 'bg-success-soft' : 'bg-warning-soft'">
+                                    <i class="fas fa-clipboard-list" th:classappend="${hasCompletedParq} ? 'text-success' : 'text-warning'"></i>
+                                </div>
+                                <div class="quick-action-content">
+                                    <h6>Health Questionnaire (PAR-Q)</h6>
+                                    <p th:text="${hasCompletedParq} ? 'Completed' : 'Required before check-in'">Required before check-in</p>
+                                </div>
+                            </a>
+                            <!-- Liability Waiver -->
+                            <a href="/member/waiver" class="quick-action">
+                                <div class="quick-action-icon" th:classappend="${hasAcceptedWaiver} ? 'bg-success-soft' : 'bg-warning-soft'">
+                                    <i class="fas fa-file-contract" th:classappend="${hasAcceptedWaiver} ? 'text-success' : 'text-warning'"></i>
+                                </div>
+                                <div class="quick-action-content">
+                                    <h6>Liability Waiver</h6>
+                                    <p th:text="${hasAcceptedWaiver} ? 'Accepted' : 'Required before check-in'">Required before check-in</p>
+                                </div>
+                            </a>
+                            <!-- Update Profile -->
                             <a href="/member/profile" class="quick-action">
                                 <div class="quick-action-icon">
                                     <i class="fas fa-user-edit"></i>
@@ -424,6 +446,7 @@
                                     <p>Edit your personal information</p>
                                 </div>
                             </a>
+                            <!-- Payment Methods -->
                             <a href="/member/payment-methods" class="quick-action">
                                 <div class="quick-action-icon">
                                     <i class="fas fa-credit-card"></i>

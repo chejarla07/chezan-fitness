@@ -662,15 +662,21 @@
             </div>
             <div class="row g-4 justify-content-center" th:if="${!#lists.isEmpty(memberships)}">
                 <div class="col-md-4" th:each="product, iterStat : ${memberships}">
-                    <div class="pricing-card" th:classappend="${iterStat.index == 1} ? 'featured' : ''">
+                    <div class="pricing-card" th:classappend="${product.name.contains('Elite') or product.name.contains('Premium')} ? 'featured' : ''">
                         <div class="pricing-header">
                             <div class="plan-name" th:text="${product.name}">Plan Name</div>
                             <div class="plan-description" th:text="${product.description}">Description</div>
+                            <span th:if="${product.name.contains('Elite')}" class="badge bg-warning text-dark mt-2">Most Popular</span>
                         </div>
                         <div class="pricing-body">
                             <div class="price" th:if="${!#lists.isEmpty(product.ratePlans)}">
                                 <span class="price-currency">$</span>
-                                <span class="price-amount" th:text="${#numbers.formatDecimal(product.ratePlans[0].price, 0, 0)}">0</span>
+                                <span class="price-amount" th:text="${#numbers.formatDecimal(product.ratePlans[0].price, 0, 2)}">0</span>
+                                <span class="price-period">/month</span>
+                            </div>
+                            <div class="price" th:if="${#lists.isEmpty(product.ratePlans)}">
+                                <span class="price-currency">$</span>
+                                <span class="price-amount">--</span>
                                 <span class="price-period">/month</span>
                             </div>
                             <ul class="feature-list">
@@ -678,16 +684,19 @@
                                 <li><i class="fas fa-check-circle"></i> All equipment & amenities</li>
                                 <li><i class="fas fa-check-circle"></i> Group classes included</li>
                                 <li><i class="fas fa-check-circle"></i> Mobile app access</li>
-                                <li th:if="${iterStat.index >= 1}"><i class="fas fa-check-circle"></i> Guest passes included</li>
-                                <li th:if="${iterStat.index == 2}"><i class="fas fa-check-circle"></i> Personal training</li>
+                                <li th:if="${product.name.contains('Premium') or product.name.contains('Elite')}"><i class="fas fa-check-circle"></i> Guest passes included</li>
+                                <li th:if="${product.name.contains('Elite')}"><i class="fas fa-check-circle"></i> Personal training sessions</li>
+                                <li th:if="${product.name.contains('Elite')}"><i class="fas fa-check-circle"></i> Priority class booking</li>
+                                <li th:if="${product.name.contains('Elite')}"><i class="fas fa-check-circle"></i> Locker room amenities</li>
                             </ul>
-                            <a th:href="@{/signup}" th:class="${iterStat.index == 1} ? 'btn btn-primary w-100' : 'btn btn-outline-primary w-100'">Get Started</a>
+                            <a th:href="@{/signup}" th:class="${product.name.contains('Elite')} ? 'btn btn-primary w-100' : 'btn btn-outline-primary w-100'">Get Started</a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="text-center py-5" th:if="${#lists.isEmpty(memberships)}">
                 <p class="text-muted">No membership plans available at the moment. Please check back later.</p>
+                <a href="/signup" class="btn btn-primary mt-3">Contact Us</a>
             </div>
         </div>
     </section>
