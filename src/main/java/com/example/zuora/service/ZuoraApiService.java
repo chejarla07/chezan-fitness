@@ -1039,6 +1039,354 @@ public class ZuoraApiService {
         return executeGet(apiUrl);
     }
 
+    /**
+     * Create a payment in Zuora
+     * API: POST /v1/payments
+     */
+    public JsonNode createPayment(String zuoraAccountKey, String zuoraPaymentMethodId,
+                                   Double amount, String currency, String type,
+                                   String effectiveDate, String comment,
+                                   java.util.List<java.util.Map<String, Object>> invoiceApplications) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock payment creation");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("id", "pay-test-" + System.currentTimeMillis());
+            mockResponse.put("paymentNumber", "P-" + System.currentTimeMillis());
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/payments";
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("accountKey", zuoraAccountKey);
+        body.put("amount", amount);
+        body.put("currency", currency != null ? currency : "USD");
+        body.put("type", type != null ? type : "External");
+
+        if (zuoraPaymentMethodId != null && !zuoraPaymentMethodId.isEmpty()) {
+            body.put("paymentMethodId", zuoraPaymentMethodId);
+        }
+
+        if (effectiveDate != null && !effectiveDate.isEmpty()) {
+            body.put("effectiveDate", effectiveDate);
+        }
+
+        if (comment != null && !comment.isEmpty()) {
+            body.put("comment", comment);
+        }
+
+        // Add invoice applications if provided
+        if (invoiceApplications != null && !invoiceApplications.isEmpty()) {
+            var invoicesArray = body.putArray("invoices");
+            for (java.util.Map<String, Object> invoice : invoiceApplications) {
+                ObjectNode invoiceNode = objectMapper.createObjectNode();
+                if (invoice.get("invoiceId") != null) {
+                    invoiceNode.put("invoiceId", invoice.get("invoiceId").toString());
+                }
+                if (invoice.get("invoiceNumber") != null) {
+                    invoiceNode.put("invoiceNumber", invoice.get("invoiceNumber").toString());
+                }
+                if (invoice.get("amount") != null) {
+                    invoiceNode.put("amount", Double.parseDouble(invoice.get("amount").toString()));
+                }
+                invoicesArray.add(invoiceNode);
+            }
+        }
+
+        System.out.println("Creating payment in Zuora for account: " + zuoraAccountKey);
+        System.out.println("Payment API Request: " + body.toString());
+
+        return executePost(apiUrl, body.toString());
+    }
+
+    /**
+     * Create an electronic payment (processed through payment gateway)
+     */
+    public JsonNode createElectronicPayment(String zuoraAccountKey, String zuoraPaymentMethodId,
+                                             Double amount, String currency,
+                                             String gatewayId, String comment) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock electronic payment");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("id", "pay-electronic-" + System.currentTimeMillis());
+            mockResponse.put("paymentNumber", "P-" + System.currentTimeMillis());
+            mockResponse.put("status", "Processed");
+            return mockResponse;
+        }
+
+        return createPayment(zuoraAccountKey, zuoraPaymentMethodId, amount, currency,
+                "Electronic", null, comment, null);
+    }
+
+    /**
+     * Refund a payment
+     * API: POST /v1/payments/{paymentKey}/refunds
+     */
+    public JsonNode refundPayment(String paymentKey, Double amount, String type,
+                                    String refundDate, String comment, String methodType,
+                                    String reasonCode) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock refund");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("id", "refund-test-" + System.currentTimeMillis());
+            mockResponse.put("number", "R-" + System.currentTimeMillis());
+            mockResponse.put("status", "Processed");
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/payments/" + paymentKey + "/refunds";
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("totalAmount", amount);
+        body.put("type", type != null ? type : "External");
+
+        if (refundDate != null && !refundDate.isEmpty()) {
+            body.put("refundDate", refundDate);
+        }
+
+        if (comment != null && !comment.isEmpty()) {
+            body.put("comment", comment);
+        }
+
+        if (methodType != null && !methodType.isEmpty()) {
+            body.put("methodType", methodType);
+        }
+
+        if (reasonCode != null && !reasonCode.isEmpty()) {
+            body.put("reasonCode", reasonCode);
+        }
+
+        System.out.println("Creating refund in Zuora for payment: " + paymentKey);
+        System.out.println("Refund API Request: " + body.toString());
+
+        return executePost(apiUrl, body.toString());
+    }
+
+    /**
+     * Apply a discount charge to a subscription using Orders API
+     * Uses chargeOverrides to apply percentage or fixed amount discount
+     */
+    public JsonNode applyDiscountToSubscription(String zuoraAccountNumber, String zuoraSubscriptionNumber,
+                                                  String discountChargeId, Double discountPercentage,
+                                                  String discountLevel, String applyTo,
+                                                  Integer durationPeriods, String durationPeriodType) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock discount application");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("subscriptionNumber", zuoraSubscriptionNumber);
+            mockResponse.put("orderNumber", "O-DISCOUNT-" + System.currentTimeMillis());
+            return mockResponse;
+        }
+
+        authenticate();
+        String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String apiUrl = zuoraBaseUrl + "/v1/orders";
+
+        System.out.println("Applying discount to subscription: " + zuoraSubscriptionNumber);
+        System.out.println("  Discount Charge ID: " + discountChargeId);
+        System.out.println("  Discount Percentage: " + discountPercentage);
+        System.out.println("  Discount Level: " + discountLevel);
+
+        // Build charge override with discount pricing
+        ObjectNode chargeOverride = objectMapper.createObjectNode();
+        chargeOverride.put("productRatePlanChargeId", discountChargeId);
+
+        // Start date policy - apply immediately
+        ObjectNode startDate = objectMapper.createObjectNode();
+        startDate.put("startDatePolicy", "ApplyToChargeStartDate");
+
+        // End date policy - fixed duration if specified
+        if (durationPeriods != null && durationPeriodType != null) {
+            ObjectNode endDate = objectMapper.createObjectNode();
+            endDate.put("endDatePolicy", "FixedPeriod");
+            endDate.put("upToPeriodsType", durationPeriodType); // Day, Week, Month, Year
+            endDate.put("upToPeriods", durationPeriods);
+            chargeOverride.set("endDate", endDate);
+        }
+
+        chargeOverride.set("startDate", startDate);
+
+        // Discount pricing
+        ObjectNode pricing = objectMapper.createObjectNode();
+        ObjectNode discount = objectMapper.createObjectNode();
+        discount.put("discountPercentage", discountPercentage);
+        discount.put("applyDiscountTo", applyTo != null ? applyTo : "RECURRING");
+        discount.put("discountLevel", discountLevel != null ? discountLevel : "subscription");
+        discount.put("applyToBillingPeriodPartially", true);
+        pricing.set("discount", discount);
+
+        chargeOverride.set("pricing", pricing);
+
+        // Build subscribeToRatePlans with charge override
+        // Note: This applies discount as an additional rate plan on the subscription
+        ObjectNode subscribeToRatePlan = objectMapper.createObjectNode();
+        subscribeToRatePlan.put("productRatePlanId", discountChargeId.split("~")[0]); // Extract product rate plan ID
+        subscribeToRatePlan.putArray("chargeOverrides").add(chargeOverride);
+
+        // Build addProduct order action
+        ObjectNode addProduct = objectMapper.createObjectNode();
+        addProduct.putArray("subscribeToRatePlans").add(subscribeToRatePlan);
+
+        ObjectNode orderAction = objectMapper.createObjectNode();
+        orderAction.put("type", "AddProduct");
+        orderAction.putArray("triggerDates").add(
+            objectMapper.createObjectNode().put("name", "ContractEffective").put("triggerDate", today)
+        );
+        orderAction.set("addProduct", addProduct);
+
+        // Build subscription data
+        ObjectNode subscriptionData = objectMapper.createObjectNode();
+        subscriptionData.put("subscriptionNumber", zuoraSubscriptionNumber);
+        subscriptionData.putArray("orderActions").add(orderAction);
+
+        // Build order request
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("existingAccountNumber", zuoraAccountNumber);
+        body.put("orderDate", today);
+        body.put("description", "Discount application via Chezan Fitness");
+        body.putArray("subscriptions").add(subscriptionData);
+
+        System.out.println("Zuora Orders API Discount Request: " + body.toString());
+
+        JsonNode response = executePost(apiUrl, body.toString());
+        System.out.println("Zuora Orders API Discount Response: " + response.toString());
+
+        // Check for success
+        if (response.has("success") && !response.get("success").asBoolean()) {
+            String errorMsg = response.has("reasons") ? response.get("reasons").toString() : "Unknown error";
+            throw new RuntimeException("Zuora discount application failed: " + errorMsg);
+        }
+
+        ObjectNode result = objectMapper.createObjectNode();
+        result.put("success", true);
+        result.put("subscriptionNumber", zuoraSubscriptionNumber);
+        return result;
+    }
+
+    /**
+     * Create a discount product rate plan charge
+     * API: POST /v1/object/product-rate-plan-charge
+     */
+    public JsonNode createDiscountCharge(String name, String productRatePlanId,
+                                          Double discountPercentage, String discountLevel,
+                                          String applyTo) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock discount charge creation");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("id", "test-discount-charge-" + System.currentTimeMillis());
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/object/product-rate-plan-charge";
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("Name", name);
+        body.put("ProductRatePlanId", productRatePlanId);
+        body.put("ChargeType", "Recurring");
+        body.put("ChargeModel", "Discount Percentage");
+        body.put("BillCycleType", "DefaultFromCustomer");
+        body.put("TriggerEvent", "ContractEffective");
+        body.put("UseDiscountSpecificAccountingCode", false);
+
+        // Discount-specific fields
+        ObjectNode tierData = objectMapper.createObjectNode();
+        ObjectNode tier = objectMapper.createObjectNode();
+        tier.put("Price", discountPercentage);
+        tier.put("Currency", "USD");
+        tierData.putArray("ProductRatePlanChargeTier").add(tier);
+        body.set("ProductRatePlanChargeTierData", tierData);
+
+        System.out.println("Creating discount charge in Zuora: " + body.toString());
+
+        return executePost(apiUrl, body.toString());
+    }
+
+    /**
+     * Delete payment method
+     * API: DELETE /v1/payment-methods/{paymentMethodId}
+     */
+    public JsonNode deletePaymentMethod(String paymentMethodId) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock payment method deletion");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/payment-methods/" + paymentMethodId;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return handleResponse(response);
+    }
+
+    /**
+     * Set payment method as default
+     * API: PUT /v1/payment-methods/{paymentMethodId}
+     */
+    public JsonNode setDefaultPaymentMethod(String paymentMethodId) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock default payment method update");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("id", paymentMethodId);
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/payment-methods/" + paymentMethodId;
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("makeDefault", true);
+
+        return executePut(apiUrl, body.toString());
+    }
+
+    /**
+     * Verify payment method (verify card/bank account)
+     * API: PUT /v1/payment-methods/{paymentMethodId}/verify
+     */
+    public JsonNode verifyPaymentMethod(String paymentMethodId) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock payment method verification");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("verificationStatus", "Valid");
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/payment-methods/" + paymentMethodId + "/verify";
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("securityCode", "skip"); // Skip CVV verification for stored cards
+
+        return executePut(apiUrl, body.toString());
+    }
+
     // Helper methods
     private JsonNode executeGet(String url) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()

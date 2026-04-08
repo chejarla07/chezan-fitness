@@ -31,16 +31,22 @@ public class AdminController {
     private final InvoiceService invoiceService;
     private final PasswordEncoder passwordEncoder;
     private final ProductSyncService productSyncService;
+    private final com.example.zuora.service.DiscountService discountService;
+    private final com.example.zuora.service.PaymentService paymentService;
 
     public AdminController(ProductService productService, UserService userService,
                           SubscriptionService subscriptionService, InvoiceService invoiceService,
-                          PasswordEncoder passwordEncoder, ProductSyncService productSyncService) {
+                          PasswordEncoder passwordEncoder, ProductSyncService productSyncService,
+                          com.example.zuora.service.DiscountService discountService,
+                          com.example.zuora.service.PaymentService paymentService) {
         this.productService = productService;
         this.userService = userService;
         this.subscriptionService = subscriptionService;
         this.invoiceService = invoiceService;
         this.passwordEncoder = passwordEncoder;
         this.productSyncService = productSyncService;
+        this.discountService = discountService;
+        this.paymentService = paymentService;
     }
 
     @GetMapping("/dashboard")
@@ -561,5 +567,131 @@ public class AdminController {
             e.printStackTrace();
         }
         return "redirect:/admin/zuora/sync-status";
+    }
+
+    // ==================== DISCOUNT MANAGEMENT ====================
+
+    @GetMapping("/discounts")
+    public String discounts(Model model,
+                            @RequestParam(required = false) String success,
+                            @RequestParam(required = false) String error) {
+        try {
+            model.addAttribute("activeDiscounts", discountService.getActiveDiscounts());
+            model.addAttribute("allDiscounts", discountService.getAllDiscounts());
+            model.addAttribute("products", productService.getAllProducts());
+            model.addAttribute("ratePlans", productService.getAllRatePlans());
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to load discounts: " + e.getMessage());
+        }
+        if (success != null) model.addAttribute("success", success);
+        if (error != null) model.addAttribute("error", error);
+        return "admin/discounts";
+    }
+
+    @PostMapping("/discounts")
+    public String createDiscount(@ModelAttribute com.example.zuora.dto.CreateDiscountRequest request,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            discountService.createDiscount(request);
+            redirectAttributes.addFlashAttribute("success", "Discount created successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to create discount: " + e.getMessage());
+        }
+        return "redirect:/admin/discounts";
+    }
+
+    @GetMapping("/discounts/{id}")
+    public String editDiscount(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("discount", discountService.getDiscountById(id));
+            model.addAttribute("products", productService.getAllProducts());
+            model.addAttribute("ratePlans", productService.getAllRatePlans());
+            return "admin/discount-edit";
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to load discount: " + e.getMessage());
+            return "redirect:/admin/discounts";
+        }
+    }
+
+    @PostMapping("/discounts/{id}")
+    public String updateDiscount(@PathVariable Long id,
+                                 @ModelAttribute com.example.zuora.dto.CreateDiscountRequest request,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            discountService.updateDiscount(id, request);
+            redirectAttributes.addFlashAttribute("success", "Discount updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update discount: " + e.getMessage());
+        }
+        return "redirect:/admin/discounts";
+    }
+
+    @PostMapping("/discounts/{id}/toggle")
+    public String toggleDiscount(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            com.example.zuora.model.Discount discount = discountService.getDiscountById(id);
+            if (discount.getStatus() == com.example.zuora.model.Discount.Status.ACTIVE) {
+                discountService.deactivateDiscount(id);
+                redirectAttributes.addFlashAttribute("success", "Discount deactivated");
+            } else {
+                discountService.activateDiscount(id);
+                redirectAttributes.addFlashAttribute("success", "Discount activated");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to toggle discount: " + e.getMessage());
+        }
+        return "redirect:/admin/discounts";
+    }
+
+    @PostMapping("/discounts/{id}/delete")
+    public String deleteDiscount(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            discountService.deleteDiscount(id);
+            redirectAttributes.addFlashAttribute("success", "Discount deleted successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete discount: " + e.getMessage());
+        }
+        return "redirect:/admin/discounts";
+    }
+
+    // ==================== PAYMENT MANAGEMENT ====================
+
+    @GetMapping("/payments")
+    public String payments(Model model,
+                          @RequestParam(required = false) String status,
+                          @RequestParam(required = false) String dateFrom,
+                          @RequestParam(required = false) String dateTo,
+                          @RequestParam(required = false) String customer,
+                          @RequestParam(defaultValue = "0") int page,
+                          @RequestParam(defaultValue = "20") int size) {
+        try {
+            java.util.List<com.example.zuora.model.Payment> allPayments = paymentService.getAllPayments();
+
+            // Calculate statistics
+            double totalPayments = allPayments.stream()
+                .filter(p -> p.getStatus() != com.example.zuora.model.Payment.PaymentStatus.Voided)
+                .mapToDouble(com.example.zuora.model.Payment::getAmount)
+                .sum();
+            double processedPayments = allPayments.stream()
+                .filter(p -> p.getStatus() == com.example.zuora.model.Payment.PaymentStatus.Processed)
+                .mapToDouble(com.example.zuora.model.Payment::getAmount)
+                .sum();
+            double processingPayments = allPayments.stream()
+                .filter(p -> p.getStatus() == com.example.zuora.model.Payment.PaymentStatus.Processing)
+                .mapToDouble(com.example.zuora.model.Payment::getAmount)
+                .sum();
+
+            model.addAttribute("payments", allPayments);
+            model.addAttribute("totalPayments", totalPayments);
+            model.addAttribute("processedPayments", processedPayments);
+            model.addAttribute("processingPayments", processingPayments);
+            model.addAttribute("totalRefunds", 0.0);
+            model.addAttribute("customers", userService.getAllCustomers());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", 1);
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to load payments: " + e.getMessage());
+        }
+        return "admin/payments";
     }
 }

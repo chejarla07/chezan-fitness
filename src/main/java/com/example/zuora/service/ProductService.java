@@ -273,4 +273,11 @@ public class ProductService {
     public List<RatePlan> getAllRatePlansByProduct(Long productId) {
         return ratePlanRepository.findByProductId(productId);
     }
+
+    /**
+     * Get all rate plans (all products)
+     */
+    public List<RatePlan> getAllRatePlans() {
+        return ratePlanRepository.findAll();
+    }
 }

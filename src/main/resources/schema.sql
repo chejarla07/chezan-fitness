@@ -179,6 +179,92 @@ CREATE TABLE IF NOT EXISTS zuora_api_responses (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Discounts table
+CREATE TABLE IF NOT EXISTS discounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    zuora_discount_id TEXT UNIQUE,
+    discount_code TEXT UNIQUE,
+    name TEXT NOT NULL,
+    description TEXT,
+    discount_type TEXT NOT NULL CHECK(discount_type IN ('PERCENTAGE', 'FIXED_AMOUNT')),
+    discount_percentage DECIMAL(5, 2),
+    discount_amount DECIMAL(10, 2),
+    discount_level TEXT CHECK(discount_level IN ('RATEPLAN', 'SUBSCRIPTION', 'ACCOUNT')),
+    apply_to TEXT CHECK(apply_to IN ('ONETIME', 'RECURRING', 'USAGE', 'ALL')),
+    product_id INTEGER,
+    rate_plan_id INTEGER,
+    start_date DATE,
+    end_date DATE,
+    max_redemptions INTEGER,
+    current_redemptions INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'INACTIVE', 'EXPIRED')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (rate_plan_id) REFERENCES rate_plans(id)
+);
+
+-- Waiver Acceptances table
+CREATE TABLE IF NOT EXISTS waiver_acceptances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    waiver_type TEXT NOT NULL,
+    waiver_version TEXT NOT NULL,
+    accepted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address TEXT,
+    user_agent TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Health Questionnaires table
+CREATE TABLE IF NOT EXISTS health_questionnaires (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    emergency_contact_name TEXT,
+    emergency_contact_phone TEXT,
+    has_heart_condition BOOLEAN,
+    has_chest_pain BOOLEAN,
+    has_dizziness BOOLEAN,
+    has_blood_pressure_issues BOOLEAN,
+    has_joint_problems BOOLEAN,
+    has_other_conditions BOOLEAN,
+    other_conditions_details TEXT,
+    takes_medications BOOLEAN,
+    medication_details TEXT,
+    has_allergies BOOLEAN,
+    allergy_details TEXT,
+    has_surgeries BOOLEAN,
+    surgery_details TEXT,
+    additional_notes TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Check-ins table
+CREATE TABLE IF NOT EXISTS check_ins (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    check_out_time TIMESTAMP,
+    location TEXT,
+    notes TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Suspended Subscription table (for pause/resume tracking)
+CREATE TABLE IF NOT EXISTS subscription_suspensions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subscription_id INTEGER NOT NULL,
+    suspend_date DATE NOT NULL,
+    resume_date DATE,
+    suspend_periods INTEGER,
+    status TEXT DEFAULT 'SUSPENDED' CHECK(status IN ('SUSPENDED', 'RESUMED', 'CANCELLED')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_zuora_account ON users(zuora_account_id);
@@ -190,3 +276,8 @@ CREATE INDEX IF NOT EXISTS idx_payment_methods_user ON payment_methods(user_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_user ON invoices(user_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
 CREATE INDEX IF NOT EXISTS idx_payments_user ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_discounts_code ON discounts(discount_code);
+CREATE INDEX IF NOT EXISTS idx_discounts_status ON discounts(status);
+CREATE INDEX IF NOT EXISTS idx_waivers_user ON waiver_acceptances(user_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaires_user ON health_questionnaires(user_id);
+CREATE INDEX IF NOT EXISTS idx_checkins_user ON check_ins(user_id);
