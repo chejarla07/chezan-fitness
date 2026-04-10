@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Places API for address autocomplete -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&amp;libraries=places"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -185,11 +187,12 @@
 
         .membership-option {
             border: 2px solid var(--neutral-200);
-            border-radius: 12px;
-            padding: 1rem;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
             cursor: pointer;
             transition: all 0.2s;
-            height: 100%;
+            display: block;
+            margin-bottom: 0.5rem;
         }
 
         .membership-option:hover {
@@ -200,10 +203,332 @@
         .membership-option.selected {
             border-color: var(--primary);
             background: var(--primary-soft);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
         .membership-option input[type="radio"] {
             display: none;
+        }
+
+        .membership-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .membership-card-header {
+            padding: 1.25rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--neutral-100);
+            flex-shrink: 0;
+        }
+
+        .membership-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--neutral-100);
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: var(--neutral-600);
+        }
+
+        .membership-card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--neutral-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .membership-card-desc {
+            font-size: 0.75rem;
+            color: var(--neutral-500);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.8em;
+        }
+
+        .membership-card-body {
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 0.5rem;
+        }
+
+        .plan-option {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            flex: 1;
+            min-height: 60px;
+        }
+
+        .plan-option:hover {
+            border-color: var(--primary);
+            background: #fafbfc;
+        }
+
+        .plan-option.selected {
+            border-color: var(--primary);
+            border-width: 2px;
+            background: #fafbfc;
+            padding: calc(0.875rem - 1px);
+        }
+
+        .plan-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+        }
+
+        .plan-radio {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--neutral-300);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .plan-option:hover .plan-radio {
+            border-color: var(--primary);
+        }
+
+        .plan-option.selected .plan-radio {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .plan-option.selected .plan-radio::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .plan-content {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 0.75rem;
+        }
+
+        .plan-info {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .plan-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--neutral-800);
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .plan-billing {
+            font-size: 0.7rem;
+            color: var(--neutral-500);
+            margin-top: 2px;
+        }
+
+        .plan-price-wrap {
+            text-align: right;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .plan-price {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neutral-800);
+            line-height: 1.2;
+        }
+
+        .plan-price-period {
+            font-size: 0.65rem;
+            color: var(--neutral-500);
+        }
+
+        /* Add-on Cards */
+        .add-on-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1rem;
+            height: 100%;
+        }
+
+        .add-on-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--neutral-100);
+        }
+
+        .add-on-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--neutral-100);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--neutral-600);
+            flex-shrink: 0;
+        }
+
+        .add-on-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .add-on-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--neutral-800);
+        }
+
+        .add-on-desc {
+            font-size: 0.75rem;
+            color: var(--neutral-500);
+            margin-top: 0.125rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .add-on-plans {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .add-on-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .add-on-option:hover {
+            border-color: var(--primary);
+            background: #fafbfc;
+        }
+
+        .add-on-option input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .add-on-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--neutral-300);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .add-on-option:hover .add-on-checkbox {
+            border-color: var(--primary);
+        }
+
+        .add-on-option input[type="checkbox"]:checked + .add-on-checkbox {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .add-on-option input[type="checkbox"]:checked + .add-on-checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .add-on-option-content {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-on-option-name {
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: var(--neutral-700);
+        }
+
+        .add-on-option-price {
+            text-align: right;
+        }
+
+        .add-on-price {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--neutral-800);
+        }
+
+        .add-on-period {
+            font-size: 0.65rem;
+            color: var(--neutral-500);
+        }
+
+        .row.equal-height {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .row.equal-height > [class*='col-'] {
+            display: flex;
+            flex-direction: column;
         }
 
         .alert {
@@ -630,26 +955,54 @@
                     Select Your Plan
                 </div>
 
-                <div class="row g-3 mb-4" th:if="${!#lists.isEmpty(memberships)}">
-                    <div class="col-md-4" th:each="membership : ${memberships}">
-                        <label class="membership-option w-100">
-                            <input type="radio" th:field="*{ratePlanId}" th:value="${!#lists.isEmpty(membership.ratePlans)} ? ${membership.ratePlans[0].id} : ''" name="ratePlanId" required>
-                            <div class="text-center p-3">
-                                <h6 class="fw-semibold mb-1" th:text="${membership.name}">Basic</h6>
-                                <p class="text-primary fw-bold mb-1">
-                                    <span th:if="${!#lists.isEmpty(membership.ratePlans)}">
-                                        $<span th:text="${#numbers.formatDecimal(membership.ratePlans[0].price, 0, 2)}">29.99</span>/mo
-                                    </span>
-                                    <span th:if="${#lists.isEmpty(membership.ratePlans)}">
-                                        Contact for pricing
-                                    </span>
-                                </p>
-                                <small class="text-muted d-block mb-2" th:text="${membership.description}">Description</small>
-                                <small class="text-muted" th:if="${!#lists.isEmpty(membership.ratePlans) and membership.ratePlans[0].billingPeriod != null}">
-                                    <span th:text="${membership.ratePlans[0].billingPeriod}">Monthly</span> billing
-                                </small>
+                <div th:if="${!#lists.isEmpty(memberships)}">
+                    <div class="row g-3 mb-4 equal-height" id="membershipCards">
+                        <div class="col-md-4" th:each="membership, iterStat : ${memberships}">
+                            <div class="membership-card" th:data-membership-index="${iterStat.index}">
+                                <div class="membership-card-header">
+                                    <div class="membership-icon">
+                                        <i class="fas" th:classappend="${iterStat.index == 0} ? 'fa-dumbbell' : (${iterStat.index == 1} ? 'fa-crown' : 'fa-star')"></i>
+                                    </div>
+                                    <div class="membership-card-title" th:text="${membership.name}">Basic</div>
+                                    <div class="membership-card-desc" th:text="${membership.description}">Description</div>
+                                </div>
+                                <div class="membership-card-body" th:data-plans="${membership.ratePlans}">
+                                    <th:block th:if="${!#lists.isEmpty(membership.ratePlans)}">
+                                        <!-- Plans will be sorted by JavaScript -->
+                                        <div th:each="plan, planStat : ${membership.ratePlans}"
+             th:if="${plan.status.name() == 'Active'}"
+             th:data-price="${plan.price}"
+             th:data-plan-id="${plan.id}"
+             style="display: none;">
+                                            <label class="plan-option">
+                                                <input type="radio"
+                                                       th:id="'plan_' + ${iterStat.index} + '_' + ${planStat.index}"
+                                                       name="ratePlanId"
+                                                       th:value="${plan.id}"
+                                                       th:checked="${iterStat.first and planStat.first}"
+                                                       required>
+                                                <span class="plan-radio"></span>
+                                                <div class="plan-content">
+                                                    <div class="plan-header">
+                                                        <div class="plan-info">
+                                                            <div class="plan-name" th:text="${plan.name}">Plan</div>
+                                                            <div class="plan-billing" th:text="${plan.billingPeriod.name() == 'Annual' ? 'Billed yearly' : (plan.billingPeriod.name() == 'Quarter' ? 'Billed quarterly' : 'Billed monthly')}">Monthly</div>
+                                                        </div>
+                                                        <div class="plan-price-wrap">
+                                                            <div class="plan-price" th:text="'$' + ${#numbers.formatDecimal(plan.price, 0, 2)}">$0</div>
+                                                            <div class="plan-price-period" th:text="${plan.billingPeriod.name() == 'Annual' ? '/year' : (plan.billingPeriod.name() == 'Quarter' ? '/quarter' : '/month')}">/month</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </th:block>
+                                    <div th:if="${#lists.isEmpty(membership.ratePlans)}" class="text-center py-4 text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>No plans available
+                                    </div>
+                                </div>
                             </div>
-                        </label>
+                        </div>
                     </div>
                 </div>
 
@@ -667,29 +1020,43 @@
                 <div id="addonsSection" class="mt-4" style="display: none;">
                     <div class="section-title">
                         <i class="fas fa-plus-circle"></i>
-                        Add-Ons <span class="text-muted fw-normal">(Optional)</span>
+                        Add-On Services <span class="text-muted fw-normal">(Optional)</span>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="form-check p-3 border rounded">
-                                <input class="form-check-input" type="checkbox" name="addons" value="personal_training" id="addon_pt">
-                                <label class="form-check-label w-100" for="addon_pt">
-                                    <strong>Personal Training</strong>
-                                    <small class="text-muted d-block">Add personal training sessions to your membership</small>
-                                    <span class="text-primary">+ $50/session</span>
-                                </label>
+                    <div class="row g-3" th:if="${addOns != null && !#lists.isEmpty(addOns)}">
+                        <div class="col-md-6" th:each="addOn, addOnStat : ${addOns}">
+                            <div class="add-on-card">
+                                <div class="add-on-header">
+                                    <div class="add-on-icon">
+                                        <i class="fas" th:classappend="${addOn.category.name() == 'PERSONAL_TRAINING'} ? 'fa-dumbbell' : (${addOn.category.name() == 'ADD_ON'} ? 'fa-plus' : 'fa-tag')"></i>
+                                    </div>
+                                    <div class="add-on-info">
+                                        <div class="add-on-name" th:text="${addOn.name}">Add-on Name</div>
+                                        <div class="add-on-desc" th:text="${addOn.description}">Description</div>
+                                    </div>
+                                </div>
+                                <div class="add-on-plans" th:if="${addOn.ratePlans != null && !#lists.isEmpty(addOn.ratePlans)}">
+                                    <th:block th:each="plan, planStat : ${addOn.ratePlans}" th:if="${plan.status.name() == 'Active'}">
+                                        <label class="add-on-option">
+                                            <input type="checkbox" name="addOnRatePlanIds" th:value="${plan.id}" th:id="'addon_' + ${addOnStat.index} + '_' + ${planStat.index}">
+                                            <span class="add-on-checkbox"></span>
+                                            <div class="add-on-option-content">
+                                                <div class="add-on-option-name" th:text="${plan.name}">Plan</div>
+                                                <div class="add-on-option-price">
+                                                    <span class="add-on-price" th:text="'$' + ${#numbers.formatDecimal(plan.price, 0, 2)}">$0</span>
+                                                    <span class="add-on-period" th:text="${plan.billingPeriod.name() == 'Annual' ? '/year' : (plan.billingPeriod.name() == 'Quarter' ? '/quarter' : '/month')}">/month</span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </th:block>
+                                </div>
+                                <div th:if="${addOn.ratePlans == null || #lists.isEmpty(addOn.ratePlans)}" class="text-center py-2 text-muted small">
+                                    <i class="fas fa-info-circle me-1"></i>No plans available
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-check p-3 border rounded">
-                                <input class="form-check-input" type="checkbox" name="addons" value="locker" id="addon_locker">
-                                <label class="form-check-label w-100" for="addon_locker">
-                                    <strong>Premium Locker</strong>
-                                    <small class="text-muted d-block">Reserved locker with towel service</small>
-                                    <span class="text-primary">+ $25/month</span>
-                                </label>
-                            </div>
-                        </div>
+                    </div>
+                    <div th:if="${addOns == null || #lists.isEmpty(addOns)}" class="text-center py-3 text-muted">
+                        <i class="fas fa-info-circle me-2"></i>No add-on services available at this time
                     </div>
                 </div>
 
@@ -720,296 +1087,220 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Add selection styling to radio buttons
-        document.querySelectorAll('.membership-option input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.querySelectorAll('.membership-option').forEach(opt => opt.classList.remove('selected'));
-                this.closest('.membership-option').classList.add('selected');
-                // Show addons section when plan is selected
-                document.getElementById('addonsSection').style.display = 'block';
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize plan selection
+            initializePlanSelection();
+
+            // Initialize sold to section visibility
+            initializeSoldToSection();
+
+            // Initialize phone formatting
+            initializePhoneFormatting();
+
+            // Initialize address autocomplete
+            initializeAddressAutocomplete();
+        });
+
+        // Plan selection handling
+        function initializePlanSelection() {
+            // Sort plans by price in each card and display them
+            document.querySelectorAll('.membership-card').forEach(card => {
+                const cardBody = card.querySelector('.membership-card-body');
+                const planContainers = Array.from(cardBody.querySelectorAll('div[data-price]'));
+
+                // Sort by price (ascending)
+                planContainers.sort((a, b) => {
+                    return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+                });
+
+                // Append sorted plans and show them
+                planContainers.forEach((container, index) => {
+                    cardBody.appendChild(container);
+                    container.style.display = 'block';
+
+                    // Mark first plan as selected
+                    const label = container.querySelector('.plan-option');
+                    const radio = container.querySelector('input[type="radio"]');
+                    if (index === 0) {
+                        label.classList.add('selected');
+                        radio.checked = true;
+                    }
+                });
             });
-        });
 
-        // Toggle Sold To section based on checkbox
-        const sameAsBillToCheckbox = document.getElementById('sameAsBillTo');
-        const soldToSection = document.getElementById('soldToSection');
+            // Initialize selected state for checked radio buttons
+            document.querySelectorAll('.plan-option input[type="radio"]:checked').forEach(radio => {
+                radio.closest('.plan-option').classList.add('selected');
+            });
 
-        sameAsBillToCheckbox.addEventListener('change', function() {
-            soldToSection.style.display = this.checked ? 'none' : 'block';
-        });
+            // Add change event listeners to all radio buttons
+            document.querySelectorAll('.plan-option input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Remove selected from all options
+                    document.querySelectorAll('.plan-option').forEach(opt => opt.classList.remove('selected'));
+                    // Add selected to this option
+                    this.closest('.plan-option').classList.add('selected');
+                    // Show addons section when plan is selected
+                    document.getElementById('addonsSection').style.display = 'block';
+                });
+            });
+        }
+
+        // Sold To section visibility
+        function initializeSoldToSection() {
+            const sameAsBillToCheckbox = document.getElementById('sameAsBillTo');
+            const soldToSection = document.getElementById('soldToSection');
+
+            if (sameAsBillToCheckbox && soldToSection) {
+                // Set initial state - hide sold to section if checkbox is checked
+                soldToSection.style.display = sameAsBillToCheckbox.checked ? 'none' : 'block';
+
+                // Toggle visibility on change
+                sameAsBillToCheckbox.addEventListener('change', function() {
+                    soldToSection.style.display = this.checked ? 'none' : 'block';
+                });
+            }
+        }
 
         // Phone number formatting
-        function formatPhoneNumber(value) {
-            // Remove all non-digit characters
-            const digits = value.replace(/\D/g, '');
-
-            // Format as (XXX) XXX-XXXX
-            if (digits.length <= 3) {
-                return digits;
-            } else if (digits.length <= 6) {
-                return '(' + digits.substring(0, 3) + ') ' + digits.substring(3);
-            } else {
-                return '(' + digits.substring(0, 3) + ') ' + digits.substring(3, 6) + '-' + digits.substring(6, 10);
-            }
-        }
-
-        // Apply formatting to phone inputs
-        const phoneInputs = ['phone', 'emergencyContactPhone'];
-        phoneInputs.forEach(function(inputId) {
-            const input = document.getElementById(inputId);
-            if (input) {
-                input.addEventListener('input', function(e) {
-                    e.target.value = formatPhoneNumber(e.target.value);
-                });
-                // Format on blur for consistent formatting
-                input.addEventListener('blur', function(e) {
-                    const digits = e.target.value.replace(/\D/g, '');
-                    if (digits.length === 10) {
-                        e.target.value = formatPhoneNumber(digits);
-                    }
-                });
-            }
-        });
-
-        // Address autocomplete - auto-fill city/state based on ZIP code
-        const zipCodeInput = document.querySelector('input[name="zipCode"]');
-        const cityInput = document.querySelector('input[name="city"]');
-        const stateInput = document.querySelector('input[name="state"]');
-        const countryInput = document.querySelector('input[name="country"]');
-
-        // Basic US ZIP code to city/state mapping (sample data)
-        const zipCodeData = {
-            '10001': { city: 'New York', state: 'NY' },
-            '10002': { city: 'New York', state: 'NY' },
-            '10003': { city: 'New York', state: 'NY' },
-            '90210': { city: 'Beverly Hills', state: 'CA' },
-            '90211': { city: 'Beverly Hills', state: 'CA' },
-            '90212': { city: 'Beverly Hills', state: 'CA' },
-            '94102': { city: 'San Francisco', state: 'CA' },
-            '94103': { city: 'San Francisco', state: 'CA' },
-            '94105': { city: 'San Francisco', state: 'CA' },
-            '60601': { city: 'Chicago', state: 'IL' },
-            '60602': { city: 'Chicago', state: 'IL' },
-            '60603': { city: 'Chicago', state: 'IL' },
-            '77001': { city: 'Houston', state: 'TX' },
-            '77002': { city: 'Houston', state: 'TX' },
-            '77003': { city: 'Houston', state: 'TX' },
-            '33101': { city: 'Miami', state: 'FL' },
-            '33102': { city: 'Miami', state: 'FL' },
-            '33139': { city: 'Miami Beach', state: 'FL' },
-            '02101': { city: 'Boston', state: 'MA' },
-            '02102': { city: 'Boston', state: 'MA' },
-            '02108': { city: 'Boston', state: 'MA' },
-            '19101': { city: 'Philadelphia', state: 'PA' },
-            '19102': { city: 'Philadelphia', state: 'PA' },
-            '19103': { city: 'Philadelphia', state: 'PA' },
-            '98101': { city: 'Seattle', state: 'WA' },
-            '98102': { city: 'Seattle', state: 'WA' },
-            '98103': { city: 'Seattle', state: 'WA' },
-            '85001': { city: 'Phoenix', state: 'AZ' },
-            '85002': { city: 'Phoenix', state: 'AZ' },
-            '85003': { city: 'Phoenix', state: 'AZ' }
-        };
-
-        // Enhanced US cities database by state
-        const citiesByState = {
-            'AL': ['Birmingham', 'Montgomery', 'Mobile', 'Huntsville', 'Tuscaloosa', 'Hoover', 'Dothan', 'Auburn'],
-            'AK': ['Anchorage', 'Fairbanks', 'Juneau', 'Sitka', 'Ketchikan'],
-            'AZ': ['Phoenix', 'Tucson', 'Mesa', 'Chandler', 'Scottsdale', 'Glendale', 'Peoria', 'Tempe'],
-            'AR': ['Little Rock', 'Fort Smith', 'Fayetteville', 'Springdale', 'Jonesboro'],
-            'CA': ['Los Angeles', 'San Diego', 'San Jose', 'San Francisco', 'Fresno', 'Sacramento', 'Long Beach', 'Oakland', 'Bakersfield', 'Anaheim', 'Santa Ana', 'Riverside', 'Stockton', 'Irvine'],
-            'CO': ['Denver', 'Colorado Springs', 'Aurora', 'Fort Collins', 'Lakewood', 'Thornton', 'Pueblo', 'Westminster'],
-            'CT': ['Bridgeport', 'New Haven', 'Hartford', 'Stamford', 'Waterbury', 'Norwalk', 'Danbury'],
-            'DE': ['Wilmington', 'Dover', 'Newark', 'Middletown'],
-            'FL': ['Jacksonville', 'Miami', 'Tampa', 'Orlando', 'St. Petersburg', 'Hialeah', 'Tallahassee', 'Fort Lauderdale', 'Port St. Lucie', 'Cape Coral', 'Pembroke Pines', 'Hollywood'],
-            'GA': ['Atlanta', 'Columbus', 'Augusta', 'Macon', 'Savannah', 'Athens', 'Sandy Springs', 'Roswell', 'Johns Creek', 'Albany'],
-            'HI': ['Honolulu', 'Pearl City', 'Hilo', 'Kailua', 'Waipahu'],
-            'ID': ['Boise', 'Nampa', 'Meridian', 'Idaho Falls', 'Pocatello', 'Caldwell'],
-            'IL': ['Chicago', 'Aurora', 'Joliet', 'Naperville', 'Peoria', 'Rockford', 'Elgin', 'Springfield', 'Champaign'],
-            'IN': ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel', 'Fishers', 'Bloomington', 'Hammond'],
-            'IA': ['Des Moines', 'Cedar Rapids', 'Davenport', 'Sioux City', 'Iowa City', 'Waterloo', 'Ames'],
-            'KS': ['Wichita', 'Overland Park', 'Kansas City', 'Topeka', 'Olathe', 'Lawrence', 'Shawnee'],
-            'KY': ['Louisville', 'Lexington', 'Bowling Green', 'Owensboro', 'Covington'],
-            'LA': ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette', 'Lake Charles', 'Kenner', 'Bossier City'],
-            'ME': ['Portland', 'Lewiston', 'Bangor', 'South Portland', 'Auburn', 'Biddeford'],
-            'MD': ['Baltimore', 'Frederick', 'Rockville', 'Gaithersburg', 'Bowie', 'Hagerstown', 'Annapolis'],
-            'MA': ['Boston', 'Worcester', 'Springfield', 'Cambridge', 'Lowell', 'Brockton', 'New Bedford', 'Fall River', 'Quincy', 'Lynn'],
-            'MI': ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Ann Arbor', 'Lansing', 'Flint', 'Dearborn', 'Livonia', 'Clinton'],
-            'MN': ['Minneapolis', 'St. Paul', 'Rochester', 'Duluth', 'Bloomington', 'Plymouth', 'Brooklyn Park'],
-            'MS': ['Jackson', 'Gulfport', 'Southaven', 'Biloxi', 'Hattiesburg', 'Olive Branch'],
-            'MO': ['Kansas City', 'St. Louis', 'Springfield', 'Independence', 'Columbia', 'Lee\'s Summit', 'O\'Fallon'],
-            'MT': ['Billings', 'Missoula', 'Great Falls', 'Bozeman', 'Butte', 'Helena'],
-            'NE': ['Omaha', 'Lincoln', 'Bellevue', 'Grand Island', 'Kearney', 'Fremont'],
-            'NV': ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas', 'Sparks', 'Carson City'],
-            'NH': ['Manchester', 'Nashua', 'Concord', 'Derry', 'Dover', 'Rochester'],
-            'NJ': ['Newark', 'Jersey City', 'Paterson', 'Elizabeth', 'Edison', 'Woodbridge', 'Toms River', 'Hamilton', 'Trenton', 'Clifton'],
-            'NM': ['Albuquerque', 'Las Cruces', 'Rio Rancho', 'Santa Fe', 'Roswell', 'Farmington'],
-            'NY': ['New York City', 'Buffalo', 'Rochester', 'Yonkers', 'Syracuse', 'Albany', 'New Rochelle', 'Mount Vernon', 'Schenectady', 'Utica'],
-            'NC': ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary', 'Wilmington', 'High Point', 'Greenville'],
-            'ND': ['Fargo', 'Bismarck', 'Grand Forks', 'Minot', 'West Fargo'],
-            'OH': ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton', 'Parma', 'Canton', 'Youngstown', 'Lorain'],
-            'OK': ['Oklahoma City', 'Tulsa', 'Norman', 'Broken Arrow', 'Lawton', 'Edmond', 'Midwest City'],
-            'OR': ['Portland', 'Salem', 'Eugene', 'Gresham', 'Hillsboro', 'Beaverton', 'Bend', 'Medford', 'Springfield'],
-            'PA': ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton', 'Bethlehem', 'Lancaster', 'Harrisburg'],
-            'RI': ['Providence', 'Warwick', 'Cranston', 'Pawtucket', 'East Providence', 'Woonsocket'],
-            'SC': ['Columbia', 'Charleston', 'North Charleston', 'Mount Pleasant', 'Rock Hill', 'Greenville', 'Summerville'],
-            'SD': ['Sioux Falls', 'Rapid City', 'Aberdeen', 'Brookings', 'Watertown', 'Mitchell'],
-            'TN': ['Nashville', 'Memphis', 'Knoxville', 'Chattanooga', 'Clarksville', 'Murfreesboro', 'Franklin', 'Jackson'],
-            'TX': ['Houston', 'San Antonio', 'Dallas', 'Austin', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Laredo', 'Lubbock', 'Irving', 'Garland', 'Frisco', 'McKinney', 'Amarillo', 'Grand Prairie'],
-            'UT': ['Salt Lake City', 'West Valley City', 'Provo', 'West Jordan', 'Orem', 'Sandy', 'Ogden', 'St. George', 'Layton'],
-            'VT': ['Burlington', 'South Burlington', 'Rutland', 'Barre', 'Montpelier', 'St. Albans'],
-            'VA': ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Arlington', 'Richmond', 'Newport News', 'Alexandria', 'Hampton', 'Roanoke', 'Portsmouth'],
-            'WA': ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue', 'Kent', 'Everett', 'Renton', 'Yakima', 'Federal Way', 'Spokane Valley'],
-            'WV': ['Charleston', 'Huntington', 'Parkersburg', 'Morgantown', 'Wheeling', 'Weirton'],
-            'WI': ['Milwaukee', 'Madison', 'Green Bay', 'Kenosha', 'Racine', 'Appleton', 'Waukesha', 'Oshkosh', 'West Allis'],
-            'WY': ['Cheyenne', 'Casper', 'Laramie', 'Gillette', 'Rock Springs']
-        };
-
-        // Address suggestions data - common street patterns
-        const streetSuggestions = [
-            'Main St', 'First St', 'Second St', 'Third St', 'Fourth St', 'Fifth St',
-            'Park Ave', 'Oak St', 'Pine St', 'Maple St', 'Cedar St', 'Elm St',
-            'Washington St', 'Lake St', 'Hill St', 'Forest Ave', 'River Rd', 'Sunset Blvd',
-            'Highland Ave', 'Valley Rd', 'Spring St', 'Court St', 'Church St', 'School St'
-        ];
-
-        // Get DOM elements
-        const address1Input = document.getElementById('address1');
-        const cityInput = document.getElementById('city');
-        const stateSelect = document.getElementById('state');
-        const zipInput = document.getElementById('zipCode');
-        const suggestionsDiv = document.getElementById('addressSuggestions');
-        const cityDatalist = document.getElementById('cityList');
-
-        // Update city suggestions when state is selected
-        if (stateSelect) {
-            stateSelect.addEventListener('change', function() {
-                const selectedState = this.value;
-                updateCitySuggestions(selectedState);
-            });
-        }
-
-        function updateCitySuggestions(stateCode) {
-            if (!cityDatalist) return;
-            cityDatalist.innerHTML = '';
-
-            if (stateCode && citiesByState[stateCode]) {
-                citiesByState[stateCode].forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city;
-                    cityDatalist.appendChild(option);
-                });
-            }
-        }
-
-        // Address autocomplete with suggestions dropdown
-        if (address1Input && suggestionsDiv) {
-            let selectedIndex = -1;
-            let currentSuggestions = [];
-
-            address1Input.addEventListener('input', function(e) {
-                const value = e.target.value.toLowerCase();
-                selectedIndex = -1;
-
-                if (value.length < 2) {
-                    suggestionsDiv.style.display = 'none';
-                    return;
-                }
-
-                // Get suggestions based on input
-                currentSuggestions = [];
-
-                // Add street suggestions
-                streetSuggestions.forEach(street => {
-                    if (street.toLowerCase().includes(value)) {
-                        currentSuggestions.push({
-                            main: street,
-                            sub: 'Common street name'
-                        });
-                    }
-                });
-
-                // Show suggestions
-                if (currentSuggestions.length > 0) {
-                    renderSuggestions(currentSuggestions);
+        function initializePhoneFormatting() {
+            function formatPhoneNumber(value) {
+                const digits = value.replace(/\D/g, '');
+                if (digits.length <= 3) {
+                    return digits;
+                } else if (digits.length <= 6) {
+                    return '(' + digits.substring(0, 3) + ') ' + digits.substring(3);
                 } else {
-                    suggestionsDiv.style.display = 'none';
-                }
-            });
-
-            function renderSuggestions(suggestions) {
-                suggestionsDiv.innerHTML = '';
-                suggestions.forEach((suggestion, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerHTML = `
-                        <div class="main-text">${suggestion.main}</div>
-                        <div class="sub-text">${suggestion.sub}</div>
-                    `;
-                    div.addEventListener('click', () => selectSuggestion(index));
-                    suggestionsDiv.appendChild(div);
-                });
-                suggestionsDiv.style.display = 'block';
-            }
-
-            function selectSuggestion(index) {
-                if (currentSuggestions[index]) {
-                    address1Input.value = currentSuggestions[index].main;
-                    suggestionsDiv.style.display = 'none';
-                    address1Input.focus();
+                    return '(' + digits.substring(0, 3) + ') ' + digits.substring(3, 6) + '-' + digits.substring(6, 10);
                 }
             }
 
-            // Keyboard navigation
-            address1Input.addEventListener('keydown', function(e) {
-                const items = suggestionsDiv.querySelectorAll('.suggestion-item');
-                if (suggestionsDiv.style.display === 'none' || items.length === 0) return;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-                    updateSelection(items);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    selectedIndex = Math.max(selectedIndex - 1, 0);
-                    updateSelection(items);
-                } else if (e.key === 'Enter' && selectedIndex >= 0) {
-                    e.preventDefault();
-                    selectSuggestion(selectedIndex);
-                } else if (e.key === 'Escape') {
-                    suggestionsDiv.style.display = 'none';
-                }
-            });
-
-            function updateSelection(items) {
-                items.forEach((item, i) => {
-                    item.style.backgroundColor = i === selectedIndex ? 'var(--primary-soft)' : '';
-                });
-            }
-
-            // Hide suggestions when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!address1Input.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-                    suggestionsDiv.style.display = 'none';
+            ['phone', 'emergencyContactPhone'].forEach(function(inputId) {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', function(e) {
+                        e.target.value = formatPhoneNumber(e.target.value);
+                    });
+                    input.addEventListener('blur', function(e) {
+                        const digits = e.target.value.replace(/\D/g, '');
+                        if (digits.length === 10) {
+                            e.target.value = formatPhoneNumber(digits);
+                        }
+                    });
                 }
             });
         }
 
-        // ZIP code to city/state lookup
-        if (zipInput) {
-            zipInput.addEventListener('blur', function(e) {
-                const zip = e.target.value.trim();
-                if (zip.length === 5 && zipCodeData[zip]) {
-                    const data = zipCodeData[zip];
-                    if (cityInput && !cityInput.value) {
-                        cityInput.value = data.city;
-                    }
-                    if (stateSelect && !stateSelect.value) {
-                        stateSelect.value = data.state;
-                        updateCitySuggestions(data.state);
-                    }
+        // Google Places Address Autocomplete
+        function initializeAddressAutocomplete() {
+            const address1Input = document.getElementById('address1');
+            const cityInput = document.getElementById('city');
+            const stateSelect = document.getElementById('state');
+            const zipInput = document.getElementById('zipCode');
+            const countryInput = document.getElementById('country');
+            const suggestionsDiv = document.getElementById('addressSuggestions');
+
+            // Check if Google Maps API is available
+            if (typeof google !== 'undefined' && google.places && address1Input) {
+                try {
+                    const autocomplete = new google.places.Autocomplete(address1Input, {
+                        types: ['address'],
+                        componentRestrictions: { country: ['us', 'ca'] }
+                    });
+
+                    autocomplete.addListener('place_changed', function() {
+                        const place = autocomplete.getPlace();
+
+                        if (place.address_components) {
+                            let streetNumber = '';
+                            let streetName = '';
+
+                            place.address_components.forEach(component => {
+                                const types = component.types;
+
+                                if (types.includes('street_number')) {
+                                    streetNumber = component.long_name;
+                                }
+                                if (types.includes('route')) {
+                                    streetName = component.long_name;
+                                }
+                                if (types.includes('locality')) {
+                                    if (cityInput) cityInput.value = component.long_name;
+                                }
+                                if (types.includes('administrative_area_level_1')) {
+                                    if (stateSelect) stateSelect.value = component.short_name;
+                                }
+                                if (types.includes('postal_code')) {
+                                    if (zipInput) zipInput.value = component.long_name;
+                                }
+                                if (types.includes('country')) {
+                                    if (countryInput) countryInput.value = component.long_name;
+                                }
+                            });
+
+                            // Set address line 1
+                            if (streetNumber && streetName) {
+                                address1Input.value = streetNumber + ' ' + streetName;
+                            }
+                        }
+                    });
+
+                    // Prevent form submission on enter in address field
+                    address1Input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                        }
+                    });
+                } catch (error) {
+                    console.log('Google Places Autocomplete not initialized:', error);
+                    // Fall back to basic autocomplete
+                    initializeBasicAutocomplete();
                 }
-            });
+            } else {
+                // Fall back to basic autocomplete if Google Maps not available
+                initializeBasicAutocomplete();
+            }
+        }
+
+        // Basic address autocomplete fallback
+        function initializeBasicAutocomplete() {
+            const address1Input = document.getElementById('address1');
+            const cityInput = document.getElementById('city');
+            const stateSelect = document.getElementById('state');
+            const zipInput = document.getElementById('zipCode');
+            const suggestionsDiv = document.getElementById('addressSuggestions');
+
+            // ZIP code to city/state mapping
+            const zipCodeData = {
+                '10001': { city: 'New York', state: 'NY' },
+                '10002': { city: 'New York', state: 'NY' },
+                '10003': { city: 'New York', state: 'NY' },
+                '90210': { city: 'Beverly Hills', state: 'CA' },
+                '94102': { city: 'San Francisco', state: 'CA' },
+                '60601': { city: 'Chicago', state: 'IL' },
+                '77001': { city: 'Houston', state: 'TX' },
+                '33101': { city: 'Miami', state: 'FL' },
+                '02101': { city: 'Boston', state: 'MA' },
+                '19101': { city: 'Philadelphia', state: 'PA' },
+                '98101': { city: 'Seattle', state: 'WA' },
+                '85001': { city: 'Phoenix', state: 'AZ' }
+            };
+
+            // ZIP code auto-fill
+            if (zipInput) {
+                zipInput.addEventListener('blur', function(e) {
+                    const zip = e.target.value.trim();
+                    if (zip.length === 5 && zipCodeData[zip]) {
+                        const data = zipCodeData[zip];
+                        if (cityInput && !cityInput.value) {
+                            cityInput.value = data.city;
+                        }
+                        if (stateSelect && !stateSelect.value) {
+                            stateSelect.value = data.state;
+                        }
+                    }
+                });
+            }
         }
     </script>
 </body>

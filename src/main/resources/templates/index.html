@@ -669,15 +669,23 @@
                             <span th:if="${product.name.contains('Elite')}" class="badge bg-warning text-dark mt-2">Most Popular</span>
                         </div>
                         <div class="pricing-body">
-                            <div class="price" th:if="${!#lists.isEmpty(product.ratePlans)}">
-                                <span class="price-currency">$</span>
-                                <span class="price-amount" th:text="${#numbers.formatDecimal(product.ratePlans[0].price, 0, 2)}">0</span>
-                                <span class="price-period">/month</span>
+                            <!-- Show all active rate plans -->
+                            <div th:if="${product.ratePlans != null and !#lists.isEmpty(product.ratePlans)}">
+                                <div th:each="plan, stat : ${product.ratePlans}" th:if="${plan.status.name() == 'Active'}" class="mb-3 p-2 rounded" th:classappend="${stat.first} ? 'bg-light' : ''">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong th:text="${plan.name}">Plan Name</strong>
+                                            <small class="text-muted d-block" th:text="${plan.billingPeriod.name() == 'Annual' ? 'Billed Yearly' : (plan.billingPeriod.name() == 'Quarter' ? 'Billed Quarterly' : 'Billed Monthly')}">Monthly</small>
+                                        </div>
+                                        <div>
+                                            <span class="h4 mb-0" th:text="'$' + ${#numbers.formatDecimal(plan.price, 0, 2)}">$0</span>
+                                            <small class="text-muted" th:text="${plan.billingPeriod.name() == 'Annual' ? '/yr' : (plan.billingPeriod.name() == 'Quarter' ? '/qtr' : '/mo')}">/mo</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="price" th:if="${#lists.isEmpty(product.ratePlans)}">
-                                <span class="price-currency">$</span>
-                                <span class="price-amount">--</span>
-                                <span class="price-period">/month</span>
+                            <div th:if="${product.ratePlans == null or #lists.isEmpty(product.ratePlans)}" class="text-center py-3">
+                                <span class="text-muted">Contact for pricing</span>
                             </div>
                             <ul class="feature-list">
                                 <li><i class="fas fa-check-circle"></i> Full gym access</li>

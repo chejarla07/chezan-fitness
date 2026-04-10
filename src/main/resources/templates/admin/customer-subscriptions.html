@@ -333,6 +333,10 @@
             <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="/admin/customers" class="active"><i class="fas fa-users"></i> Customers</a></li>
             <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/discounts"><i class="fas fa-percent"></i> Discounts</a></li>
+            <li><a href="/admin/waivers"><i class="fas fa-file-contract"></i> Waivers</a></li>
+            <li><a href="/admin/parq-questions"><i class="fas fa-clipboard-list"></i> PAR-Q Questions</a></li>
+            <li><a href="/admin/payments"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
             <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
         </ul>
@@ -415,12 +419,12 @@
                             </div>
 
                             <!-- Cancellation Options -->
-                            <div th:if="${sub.status.name() == 'Active' && cancellationOptions != null}" class="mt-3 pt-3 border-top">
-                                <small class="text-muted">Cancellation Options:</small>
+                            <div th:if="${sub.status.name() == 'Active' && cancellationOptions != null && !#lists.isEmpty(cancellationOptions)}" class="mt-3 pt-3 border-top">
+                                <small class="text-muted">Cancellation Options Available</small>
                                 <div class="mt-2">
-                                    <span class="badge bg-light text-dark me-2">
+                                    <span class="badge bg-light text-dark me-2" th:each="opt : ${cancellationOptions}">
                                         <i class="fas fa-calendar me-1"></i>
-                                        End of Term: <span th:text="${cancellationOptions.endOfTermDate} ?: 'N/A'">--</span>
+                                        <span th:text="${opt.label}">--</span>: <span th:text="${#temporals.format(opt.effectiveDate, 'MMM dd, yyyy')}">--</span>
                                     </span>
                                 </div>
                             </div>
@@ -431,20 +435,64 @@
                 <!-- Available Plans -->
                 <div class="card animate-in delay-2" th:if="${!#lists.isEmpty(availablePlans)}">
                     <div class="card-header">
-                        <h6 class="card-title"><i class="fas fa-list me-2 text-success"></i>Available Plans</h6>
+                        <h6 class="card-title"><i class="fas fa-list me-2 text-success"></i>Available Membership Plans</h6>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6" th:each="plan : ${availablePlans}">
                                 <div class="plan-option">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1" th:text="${plan.name}">Plan Name</h6>
-                                            <p class="text-muted small mb-2" th:text="${plan.description}">Description</p>
+                                    <h6 class="mb-1" th:text="${plan.name}">Plan Name</h6>
+                                    <p class="text-muted small mb-2" th:text="${plan.description}">Description</p>
+                                    <div th:if="${!#lists.isEmpty(plan.ratePlans)}" class="mt-2">
+                                        <div th:each="ratePlan : ${plan.ratePlans}" th:if="${ratePlan.status.name() == 'Active'}" class="d-flex justify-content-between align-items-center py-1">
+                                            <span class="small" th:text="${ratePlan.name}">Rate Plan</span>
+                                            <span class="badge bg-primary" th:text="'$' + ${#numbers.formatDecimal(ratePlan.price, 0, 2)} + ' / ' + ${ratePlan.billingPeriod.name() == 'Annual' ? 'yr' : (ratePlan.billingPeriod.name() == 'Quarter' ? 'qtr' : 'mo')}">$0/mo</span>
                                         </div>
-                                        <span class="badge bg-primary" th:if="${!#lists.isEmpty(plan.ratePlans)}">
-                                            $<span th:text="${#numbers.formatDecimal(plan.ratePlans[0].price, 0, 2)}">0</span>/mo
-                                        </span>
+                                    </div>
+                                    <div th:if="${#lists.isEmpty(plan.ratePlans)}" class="text-muted small">
+                                        <i class="fas fa-info-circle me-1"></i>No active plans available
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add-on Products -->
+                <div class="card animate-in delay-2 mt-3" th:if="${!#lists.isEmpty(addOnProducts) && hasActiveSubscription}">
+                    <div class="card-header">
+                        <h6 class="card-title"><i class="fas fa-plus-circle me-2 text-warning"></i>Add-on Services</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Add-on services can be added to existing memberships.
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6" th:each="addOn : ${addOnProducts}">
+                                <div class="plan-option" style="border-color: var(--success);">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1" th:text="${addOn.name}">Add-on Name</h6>
+                                            <p class="text-muted small mb-0" th:text="${addOn.description}">Description</p>
+                                        </div>
+                                        <span class="badge bg-success">Add-on</span>
+                                    </div>
+                                    <div th:if="${!#lists.isEmpty(addOn.ratePlans)}" class="mt-2">
+                                        <div th:each="ratePlan : ${addOn.ratePlans}" th:if="${ratePlan.status.name() == 'Active'}">
+                                            <form th:action="@{/admin/customers/{id}/subscriptions/add-addon(id=${customer.id})}" method="post" class="d-flex justify-content-between align-items-center">
+                                                <input type="hidden" name="ratePlanId" th:value="${ratePlan.id}">
+                                                <div>
+                                                    <span class="small" th:text="${ratePlan.name}">Rate Plan</span>
+                                                    <span class="badge bg-success ms-2" th:text="'$' + ${#numbers.formatDecimal(ratePlan.price, 0, 2)}">$0</span>
+                                                </div>
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-plus me-1"></i>Add
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div th:if="${#lists.isEmpty(addOn.ratePlans)}" class="text-muted small">
+                                        <i class="fas fa-info-circle me-1"></i>No active plans available
                                     </div>
                                 </div>
                             </div>
@@ -524,23 +572,26 @@
                             <label class="form-label fw-semibold">Select Plan *</label>
                             <div class="row g-3">
                                 <div class="col-md-6" th:each="plan : ${availablePlans}">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="ratePlanId" th:value="${!#lists.isEmpty(plan.ratePlans)} ? ${plan.ratePlans[0].id} : 0" th:id="'plan_' + ${plan.id}" required>
-                                        <label class="form-check-label w-100" th:for="'plan_' + ${plan.id}">
-                                            <div class="card">
-                                                <div class="card-body py-2">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong th:text="${plan.name}">Plan</strong>
-                                                            <p class="mb-0 text-muted small" th:text="${plan.description}">Desc</p>
-                                                        </div>
-                                                        <div class="text-end">
-                                                            <span class="h5 text-primary" th:if="${!#lists.isEmpty(plan.ratePlans)}">$<span th:text="${#numbers.formatDecimal(plan.ratePlans[0].price, 0, 2)}">0</span></span>
+                                    <div th:each="ratePlan, stat : ${plan.ratePlans}" th:if="${ratePlan.status.name() == 'Active'}">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="ratePlanId" th:value="${ratePlan.id}" th:id="'plan_' + ${ratePlan.id}" required>
+                                            <label class="form-check-label w-100" th:for="'plan_' + ${ratePlan.id}">
+                                                <div class="card">
+                                                    <div class="card-body py-2">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong th:text="${plan.name}">Plan</strong>
+                                                                <small class="text-muted d-block" th:text="${ratePlan.name}">Rate Plan</small>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <span class="h5 text-primary">$<span th:text="${#numbers.formatDecimal(ratePlan.price, 0, 2)}">0</span></span>
+                                                                <small class="text-muted d-block" th:text="${ratePlan.billingPeriod.name() == 'Annual' ? '/year' : (ratePlan.billingPeriod.name() == 'Quarter' ? '/quarter' : '/month')}">/mo</small>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </label>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -573,23 +624,26 @@
                             <label class="form-label fw-semibold">Select New Plan *</label>
                             <div class="row g-3">
                                 <div class="col-md-6" th:each="plan : ${availablePlans}">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="newRatePlanId" th:value="${!#lists.isEmpty(plan.ratePlans)} ? ${plan.ratePlans[0].id} : 0" th:id="'upgrade_plan_' + ${plan.id}" required>
-                                        <label class="form-check-label w-100" th:for="'upgrade_plan_' + ${plan.id}">
-                                            <div class="card">
-                                                <div class="card-body py-2">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong th:text="${plan.name}">Plan</strong>
-                                                            <p class="mb-0 text-muted small" th:text="${plan.description}">Desc</p>
-                                                        </div>
-                                                        <div class="text-end">
-                                                            <span class="h5 text-primary" th:if="${!#lists.isEmpty(plan.ratePlans)}">$<span th:text="${#numbers.formatDecimal(plan.ratePlans[0].price, 0, 2)}">0</span></span>
+                                    <div th:each="ratePlan, stat : ${plan.ratePlans}" th:if="${ratePlan.status.name() == 'Active'}">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="newRatePlanId" th:value="${ratePlan.id}" th:id="'upgrade_plan_' + ${ratePlan.id}" required>
+                                            <label class="form-check-label w-100" th:for="'upgrade_plan_' + ${ratePlan.id}">
+                                                <div class="card">
+                                                    <div class="card-body py-2">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong th:text="${plan.name}">Plan</strong>
+                                                                <small class="text-muted d-block" th:text="${ratePlan.name}">Rate Plan</small>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <span class="h5 text-primary">$<span th:text="${#numbers.formatDecimal(ratePlan.price, 0, 2)}">0</span></span>
+                                                                <small class="text-muted d-block" th:text="${ratePlan.billingPeriod.name() == 'Annual' ? '/year' : (ratePlan.billingPeriod.name() == 'Quarter' ? '/quarter' : '/month')}">/mo</small>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </label>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -633,13 +687,12 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="mb-3" th:if="${cancellationOptions != null && cancellationOptions.endOfTermDate != null}">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="endOfTerm" value="true" id="endOfTermCheck">
-                                <label class="form-check-label" for="endOfTermCheck">
-                                    Cancel at end of term (<span th:text="${cancellationOptions.endOfTermDate}">--</span>)
-                                </label>
-                            </div>
+                        <div class="mb-3" th:if="${cancellationOptions != null && !#lists.isEmpty(cancellationOptions)}">
+                            <label class="form-label fw-semibold">Cancellation Policy</label>
+                            <select name="cancellationPolicy" class="form-select">
+                                <option value="SpecificDate">Specific Date</option>
+                                <option th:each="opt : ${cancellationOptions}" th:value="${opt.policy}" th:text="${opt.label} + ' (' + ${#temporals.format(opt.effectiveDate, 'MMM dd, yyyy')} + ')'">End of Term</option>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">

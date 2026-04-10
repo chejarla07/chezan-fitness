@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PAR-Q Questions | Chezan Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --danger: #ef4444;
+            --danger-soft: #fee2e2;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+        }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--neutral-50); min-height: 100vh; }
+        .sidebar { min-height: 100vh; background: var(--neutral-900); color: white; position: fixed; width: 280px; z-index: 1000; }
+        .sidebar-brand { padding: 1.5rem; border-bottom: 1px solid var(--neutral-800); display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+        .sidebar-brand h5 { font-weight: 700; font-size: 1.25rem; color: white; margin: 0; }
+        .sidebar-brand small { color: var(--neutral-500); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-menu { list-style: none; padding: 1rem 0; margin: 0; }
+        .sidebar-menu li a { display: flex; align-items: center; padding: 0.875rem 1.5rem; color: var(--neutral-400); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; border-radius: 0 8px 8px 0; margin-right: 1rem; }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active { background: var(--primary); color: white; }
+        .sidebar-menu i { width: 24px; font-size: 1rem; }
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem 1.5rem; border-top: 1px solid var(--neutral-800); }
+        .main-content { margin-left: 280px; padding: 2rem; }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-weight: 600; font-size: 1.75rem; color: var(--neutral-800); }
+        .card { background: white; border: 1px solid var(--neutral-200); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .card-header { background: transparent; border-bottom: 1px solid var(--neutral-200); padding: 1.25rem; }
+        .card-title { font-weight: 600; font-size: 1rem; color: var(--neutral-800); margin: 0; }
+        .card-body { padding: 1.5rem; }
+        .status-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; }
+        .status-badge.active { background: var(--success-soft); color: #047857; }
+        .status-badge.inactive { background: var(--neutral-100); color: var(--neutral-600); }
+        .btn-primary { background: var(--primary); border-color: var(--primary); font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 8px; }
+        .btn-primary:hover { background: #2563eb; border-color: #2563eb; }
+        .btn-outline-secondary { border-color: var(--neutral-200); color: var(--neutral-600); font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; }
+        .btn-outline-secondary:hover { border-color: var(--neutral-300); color: var(--neutral-800); background: var(--neutral-50); }
+        .btn-icon { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--neutral-200); background: white; color: var(--neutral-500); transition: all 0.2s; }
+        .btn-icon:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+        .question-card { background: var(--neutral-50); border: 1px solid var(--neutral-200); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+        .question-number { width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; }
+        .question-text { font-size: 1rem; color: var(--neutral-800); line-height: 1.5; }
+        .question-help { font-size: 0.875rem; color: var(--neutral-500); margin-top: 0.5rem; }
+        .drag-handle { cursor: grab; color: var(--neutral-400); }
+        .drag-handle:hover { color: var(--neutral-600); }
+        .form-label { font-weight: 500; color: var(--neutral-700); font-size: 0.875rem; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid var(--neutral-200); padding: 0.625rem 0.75rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+        .alert { border-radius: 12px; border: none; }
+        .alert-success { background: var(--success-soft); color: #047857; }
+        .alert-danger { background: var(--danger-soft); color: #991b1b; }
+        .alert-info { background: var(--primary-soft); color: #1d4ed8; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
+            <div>
+                <h5>Chezan</h5>
+                <small>Admin Portal</small>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/admin/customers"><i class="fas fa-users"></i> Customers</a></li>
+            <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/discounts"><i class="fas fa-percent"></i> Discounts</a></li>
+            <li><a href="/admin/waivers"><i class="fas fa-file-contract"></i> Waivers</a></li>
+            <li><a href="/admin/parq-questions" class="active"><i class="fas fa-clipboard-list"></i> PAR-Q Questions</a></li>
+            <li><a href="/admin/payments"><i class="fas fa-credit-card"></i> Payments</a></li>
+            <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="/logout" class="d-flex align-items-center text-decoration-none" style="color: var(--neutral-400);">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header animate-in">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-clipboard-list me-2"></i>PAR-Q Questions</h1>
+                <div class="d-flex gap-2">
+                    <form th:action="@{/admin/parq-questions/initialize}" method="post" th:if="${#lists.isEmpty(questions)}">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="fas fa-magic me-2"></i>Load Default Questions
+                        </button>
+                    </form>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newQuestionModal">
+                        <i class="fas fa-plus me-2"></i>Add Question
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success animate-in mb-4" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger animate-in mb-4" th:text="${error}"></div>
+
+        <div class="alert alert-info animate-in" th:if="${#lists.isEmpty(questions)}">
+            <i class="fas fa-info-circle me-2"></i>
+            No PAR-Q questions configured yet. Click "Load Default Questions" to add the standard 7-question PAR-Q form, or add custom questions.
+        </div>
+
+        <!-- Questions List -->
+        <div class="card animate-in" th:if="${!#lists.isEmpty(questions)}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title"><i class="fas fa-list me-2"></i>Questionnaire Questions</h6>
+                <span class="status-badge active">
+                    <span th:text="${#lists.size(questions)}">0</span> questions
+                </span>
+            </div>
+            <div class="card-body">
+                <div th:each="question, iterStat : ${questions}" class="question-card" th:classappend="${!question.active} ? 'opacity-50' : ''">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="question-number" th:text="${question.questionNumber}">1</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="question-text" th:text="${question.questionText}">Question text here</div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn-icon" title="Edit"
+                                            data-bs-toggle="modal" data-bs-target="#editQuestionModal"
+                                            th:data-question-id="${question.id}"
+                                            th:data-question-number="${question.questionNumber}"
+                                            th:data-question-text="${question.questionText}"
+                                            th:data-help-text="${question.helpText}"
+                                            th:data-question-active="${question.active}"
+                                            th:data-question-required="${question.required}"
+                                            th:data-display-order="${question.displayOrder}"
+                                            onclick="openEditModal(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form th:action="@{/admin/parq-questions/{id}/toggle-active(id=${question.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn-icon" th:title="${question.active} ? 'Deactivate' : 'Activate'">
+                                            <i th:if="${question.active}" class="fas fa-toggle-on text-success"></i>
+                                            <i th:unless="${question.active}" class="fas fa-toggle-off text-secondary"></i>
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/admin/parq-questions/{id}/delete(id=${question.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn-icon" title="Delete" onclick="return confirm('Delete this question?')">
+                                            <i class="fas fa-trash text-danger"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div th:if="${question.helpText != null and !#strings.isEmpty(question.helpText)}" class="question-help">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span th:text="${question.helpText}">Help text</span>
+                            </div>
+                            <div class="mt-2">
+                                <span th:if="${question.required}" class="badge bg-danger">Required</span>
+                                <span th:unless="${question.required}" class="badge bg-secondary">Optional</span>
+                                <span th:if="${!question.active}" class="badge bg-warning text-dark ms-1">Inactive</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Question Modal -->
+    <div class="modal fade" id="newQuestionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add PAR-Q Question</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/parq-questions/create}" method="post">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Question Number *</label>
+                                <input type="number" name="questionNumber" class="form-control" min="1" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Display Order</label>
+                                <input type="number" name="displayOrder" class="form-control" min="1">
+                                <div class="form-text">Leave empty to use question number</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Options</label>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="required" id="newRequired" checked>
+                                    <label class="form-check-label" for="newRequired">Required question</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Question Text *</label>
+                            <textarea name="questionText" class="form-control" rows="3" placeholder="Enter the question text that members will see..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Help Text (Optional)</label>
+                            <textarea name="helpText" class="form-control" rows="2" placeholder="Additional guidance or explanation for the question..."></textarea>
+                            <div class="form-text">Optional explanatory text shown below the question</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Question</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Question Modal -->
+    <div class="modal fade" id="editQuestionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Question</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editQuestionForm" method="post">
+                    <input type="hidden" name="id" id="editQuestionId">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Question Number</label>
+                                <input type="number" id="editQuestionNumber" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Display Order</label>
+                                <input type="number" name="displayOrder" id="editDisplayOrder" class="form-control" min="1">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Question Text</label>
+                            <textarea name="questionText" id="editQuestionText" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Help Text</label>
+                            <textarea name="helpText" id="editHelpText" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="active" id="editActive">
+                                    <label class="form-check-label" for="editActive">Active (show in questionnaire)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="required" id="editRequired">
+                                    <label class="form-check-label" for="editRequired">Required question</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openEditModal(button) {
+            const id = button.getAttribute('data-question-id');
+            const number = button.getAttribute('data-question-number');
+            const text = button.getAttribute('data-question-text');
+            const helpText = button.getAttribute('data-help-text');
+            const active = button.getAttribute('data-question-active') === 'true';
+            const required = button.getAttribute('data-question-required') === 'true';
+            const displayOrder = button.getAttribute('data-display-order');
+
+            document.getElementById('editQuestionId').value = id;
+            document.getElementById('editQuestionNumber').value = number;
+            document.getElementById('editQuestionText').value = text;
+            document.getElementById('editHelpText').value = helpText || '';
+            document.getElementById('editActive').checked = active;
+            document.getElementById('editRequired').checked = required;
+            document.getElementById('editDisplayOrder').value = displayOrder;
+            document.getElementById('editQuestionForm').action = '/admin/parq-questions/' + id + '/update';
+        }
+    </script>
+</body>
+</html>

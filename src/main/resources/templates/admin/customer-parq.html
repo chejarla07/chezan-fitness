@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PAR-Q Status | Chezan Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-soft: #dbeafe;
+            --success: #10b981;
+            --success-soft: #d1fae5;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --danger: #ef4444;
+            --danger-soft: #fee2e2;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+        }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--neutral-50); min-height: 100vh; }
+        .sidebar { min-height: 100vh; background: var(--neutral-900); color: white; position: fixed; width: 280px; z-index: 1000; }
+        .sidebar-brand { padding: 1.5rem; border-bottom: 1px solid var(--neutral-800); display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+        .sidebar-brand h5 { font-weight: 700; font-size: 1.25rem; color: white; margin: 0; }
+        .sidebar-brand small { color: var(--neutral-500); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-menu { list-style: none; padding: 1rem 0; margin: 0; }
+        .sidebar-menu li a { display: flex; align-items: center; padding: 0.875rem 1.5rem; color: var(--neutral-400); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; border-radius: 0 8px 8px 0; margin-right: 1rem; }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active { background: var(--primary); color: white; }
+        .sidebar-menu i { width: 24px; font-size: 1rem; }
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem 1.5rem; border-top: 1px solid var(--neutral-800); }
+        .main-content { margin-left: 280px; padding: 2rem; }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-weight: 600; font-size: 1.75rem; color: var(--neutral-800); }
+        .card { background: white; border: 1px solid var(--neutral-200); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .card-header { background: transparent; border-bottom: 1px solid var(--neutral-200); padding: 1.25rem; }
+        .card-title { font-weight: 600; font-size: 1rem; color: var(--neutral-800); margin: 0; }
+        .card-body { padding: 1.5rem; }
+        .status-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; }
+        .status-badge.active { background: var(--success-soft); color: #047857; }
+        .status-badge.inactive { background: var(--neutral-100); color: var(--neutral-600); }
+        .status-badge.warning { background: var(--warning-soft); color: #92400e; }
+        .btn-outline-secondary { border-color: var(--neutral-200); color: var(--neutral-600); font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; }
+        .btn-outline-secondary:hover { border-color: var(--neutral-300); color: var(--neutral-800); background: var(--neutral-50); }
+        .table { font-size: 0.875rem; margin: 0; }
+        .table thead th { color: var(--neutral-500); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 1rem; border-bottom: 1px solid var(--neutral-200); background: var(--neutral-50); }
+        .table tbody td { padding: 1rem; color: var(--neutral-700); border-bottom: 1px solid var(--neutral-100); vertical-align: middle; }
+        .table tbody tr:hover { background: var(--neutral-50); }
+        .alert { border-radius: 12px; border: none; }
+        .alert-success { background: var(--success-soft); color: #047857; }
+        .alert-danger { background: var(--danger-soft); color: #991b1b; }
+        .alert-warning { background: var(--warning-soft); color: #92400e; }
+        .alert-info { background: var(--primary-soft); color: #1d4ed8; }
+        .answer-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500; }
+        .answer-yes { background: var(--danger-soft); color: #991b1b; }
+        .answer-no { background: var(--success-soft); color: #047857; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
+            <div>
+                <h5>Chezan</h5>
+                <small>Admin Portal</small>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/admin/customers" class="active"><i class="fas fa-users"></i> Customers</a></li>
+            <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/discounts"><i class="fas fa-percent"></i> Discounts</a></li>
+            <li><a href="/admin/waivers"><i class="fas fa-file-contract"></i> Waivers</a></li>
+            <li><a href="/admin/parq-questions"><i class="fas fa-clipboard-list"></i> PAR-Q Questions</a></li>
+            <li><a href="/admin/payments"><i class="fas fa-credit-card"></i> Payments</a></li>
+            <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+            <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="/logout" class="d-flex align-items-center text-decoration-none" style="color: var(--neutral-400);">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header animate-in">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <a th:href="@{/admin/customers/{id}(id=${customer.id})}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h1>PAR-Q Status</h1>
+                        <p class="mb-0 text-muted" th:text="${customer.firstName + ' ' + customer.lastName}">Customer Name</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success animate-in mb-4" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger animate-in mb-4" th:text="${error}"></div>
+
+        <!-- Status Card -->
+        <div class="card animate-in">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="mb-2">Health Questionnaire (PAR-Q)</h5>
+                        <p class="text-muted mb-0">Physical Activity Readiness Questionnaire status and history</p>
+                    </div>
+                    <div>
+                        <span th:if="${hasCompletedParq}" class="status-badge active">
+                            <i class="fas fa-check-circle me-1"></i> Completed
+                        </span>
+                        <span th:unless="${hasCompletedParq}" class="status-badge warning">
+                            <i class="fas fa-exclamation-circle me-1"></i> Not Completed
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest PAR-Q -->
+        <div class="card animate-in" th:if="${latestParq != null}">
+            <div class="card-header">
+                <h6 class="card-title"><i class="fas fa-clipboard-list me-2 text-primary"></i>Latest Submission</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Submitted</small>
+                        <span th:text="${#temporals.format(latestParq.completedAt, 'MMM d, yyyy h:mm a')}">--</span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Requires Medical Clearance</small>
+                        <span th:if="${latestParq.requiresMedicalClearance()}" class="answer-badge yes">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Yes
+                        </span>
+                        <span th:unless="${latestParq.requiresMedicalClearance()}" class="answer-badge no">
+                            <i class="fas fa-check me-1"></i>No
+                        </span>
+                    </div>
+                </div>
+                <hr>
+                <h6 class="mb-3">Questionnaire Responses</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>1. Heart disease or heart condition?</td>
+                                <td><span th:class="${latestParq.q1HeartDisease} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q1HeartDisease} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                            <tr>
+                                <td>2. Chest pain during physical activity?</td>
+                                <td><span th:class="${latestParq.q2ChestPainActivity} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q2ChestPainActivity} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                            <tr>
+                                <td>3. Chest pain when not doing physical activity?</td>
+                                <td><span th:class="${latestParq.q3ChestPainNoActivity} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q3ChestPainNoActivity} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                            <tr>
+                                <td>4. Balance problems or dizziness?</td>
+                                <td><span th:class="${latestParq.q4BalanceIssues} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q4BalanceIssues} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                            <tr>
+                                <td>5. Bone or joint problems that could worsen?</td>
+                                <td><span th:class="${latestParq.q5BoneJointIssues} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q5BoneJointIssues} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                            <tr>
+                                <td>6. Currently taking blood pressure medication?</td>
+                                <td><span th:class="${latestParq.q6BloodPressureMeds} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q6BloodPressureMeds} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                            <tr>
+                                <td>7. Any other reason not to exercise?</td>
+                                <td><span th:class="${latestParq.q7OtherReasons} ? 'answer-badge yes' : 'answer-badge no'" th:text="${latestParq.q7OtherReasons} ? 'Yes' : 'No'">--</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${latestParq.additionalNotes != null and !#strings.isEmpty(latestParq.additionalNotes)}">
+                    <h6 class="mt-3">Additional Notes</h6>
+                    <p class="text-muted" th:text="${latestParq.additionalNotes}">--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- No PAR-Q Alert -->
+        <div class="card animate-in" th:if="${latestParq == null}">
+            <div class="card-body">
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard-list fa-3x mb-3" style="color: var(--neutral-300);"></i>
+                    <h5 class="text-muted">No PAR-Q Submitted</h5>
+                    <p class="text-muted small">This customer has not completed the health questionnaire yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="card animate-in" th:if="${parqHistory != null and !#lists.isEmpty(parqHistory)}">
+            <div class="card-header">
+                <h6 class="card-title"><i class="fas fa-history me-2 text-secondary"></i>Submission History</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Version</th>
+                                <th>Medical Clearance Required</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="parq : ${parqHistory}">
+                                <td th:text="${#temporals.format(parq.completedAt, 'MMM d, yyyy h:mm a')}">--</td>
+                                <td th:text="${parq.questionnaireType + ' v' + parq.version}">--</td>
+                                <td>
+                                    <span th:if="${parq.requiresMedicalClearance()}" class="answer-badge yes">Yes</span>
+                                    <span th:unless="${parq.requiresMedicalClearance()}" class="answer-badge no">No</span>
+                                </td>
+                                <td th:text="${parq.ipAddress} ?: '--'">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

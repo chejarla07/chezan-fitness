@@ -305,9 +305,7 @@
 
                         <!-- Active Actions -->
                         <div th:if="${sub.status.name() == 'Active'}" class="d-flex gap-2 flex-wrap">
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#changePlanModal"><i class="fas fa-exchange-alt me-1"></i>Change</button>
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#pauseModal"><i class="fas fa-pause me-1"></i>Pause</button>
-                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="fas fa-ban me-1"></i>Cancel</button>
+                            <a href="/member/subscriptions/manage" class="btn btn-primary btn-sm"><i class="fas fa-cog me-1"></i>Manage Subscription</a>
                         </div>
 
                         <!-- Suspended Actions -->
@@ -317,12 +315,7 @@
                                 <strong th:if="${sub.suspendEndDate != null}" th:text="${sub.suspendEndDate}">--</strong>
                                 <strong th:unless="${sub.suspendEndDate != null}">Unknown</strong>
                             </div>
-                            <button class="btn btn-success w-100"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#resumeModal"
-                                    th:data-suspend-end="${sub.suspendEndDate != null ? sub.suspendEndDate : #temporals.format(#temporals.createNow().plusMonths(1), 'yyyy-MM-dd')}">
-                                <i class="fas fa-play me-2"></i>Resume Subscription
-                            </button>
+                            <a href="/member/subscriptions/manage" class="btn btn-primary btn-sm"><i class="fas fa-play me-2"></i>Manage Subscription</a>
                         </div>
                     </div>
                 </div>

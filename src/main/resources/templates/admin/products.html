@@ -254,6 +254,10 @@
             <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="/admin/customers"><i class="fas fa-users"></i> Customers</a></li>
             <li><a href="/admin/products" class="active"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/discounts"><i class="fas fa-percent"></i> Discounts</a></li>
+            <li><a href="/admin/waivers"><i class="fas fa-file-contract"></i> Waivers</a></li>
+            <li><a href="/admin/parq-questions"><i class="fas fa-clipboard-list"></i> PAR-Q Questions</a></li>
+            <li><a href="/admin/payments"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
             <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
         </ul>
@@ -286,6 +290,7 @@
                             <tr>
                                 <th>Product</th>
                                 <th>Category</th>
+                                <th>Zuora Sync</th>
                                 <th>Status</th>
                                 <th>Rate Plans</th>
                                 <th class="text-end">Actions</th>
@@ -298,16 +303,35 @@
                                         <div class="bg-light rounded p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                             <i class="fas fa-box" style="color: var(--neutral-400);"></i>
                                         </div>
-                                        <span class="fw-semibold" th:text="${product.name}">Product Name</span>
+                                        <div>
+                                            <span class="fw-semibold" th:text="${product.name}">Product Name</span>
+                                            <div th:if="${product.ratePlans != null && !#lists.isEmpty(product.ratePlans)}" class="small text-muted mt-1">
+                                                <span th:each="plan, stat : ${product.ratePlans}" th:if="${plan.status.name() == 'Active'}">
+                                                    <span th:text="${plan.name}">Plan</span>:
+                                                    <span class="fw-semibold" th:text="'$' + ${#numbers.formatDecimal(plan.price, 0, 2)} + '/' + ${plan.billingPeriod.name() == 'Annual' ? 'yr' : (plan.billingPeriod.name() == 'Quarter' ? 'qtr' : 'mo')}">$0</span>
+                                                    <span th:if="${!stat.last}"> · </span>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="category-badge" th:text="${product.category}">Category</span>
                                 </td>
                                 <td>
+                                    <span th:if="${product.zuoraProductId != null}" class="status-badge active">
+                                        <i class="fas fa-check-circle me-1"></i> Synced
+                                    </span>
+                                    <span th:if="${product.zuoraProductId == null}" class="status-badge inactive">
+                                        <i class="fas fa-clock me-1"></i> Local Only
+                                    </span>
+                                </td>
+                                <td>
                                     <span th:class="${product.status.name() == 'Active'} ? 'status-badge active' : 'status-badge inactive'" th:text="${product.status}">Status</span>
                                 </td>
-                                <td th:text="${#lists.size(product.ratePlans)}">0</td>
+                                <td>
+                                    <span class="badge bg-light text-dark" th:text="${#lists.size(product.ratePlans)} + ' plans'">0 plans</span>
+                                </td>
                                 <td class="text-end">
                                     <a th:href="@{/admin/products/{id}/edit(id=${product.id})}" class="btn-icon me-2" title="Edit">
                                         <i class="fas fa-edit"></i>
@@ -320,7 +344,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(products)}">
-                                <td colspan="5">
+                                <td colspan="6">
                                     <div class="text-center py-5">
                                         <div class="mb-3">
                                             <i class="fas fa-box fa-3x" style="color: var(--neutral-300);"></i>

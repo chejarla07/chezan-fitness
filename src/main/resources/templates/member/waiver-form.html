@@ -38,14 +38,6 @@
             font-size: 0.9rem;
             line-height: 1.6;
         }
-        .signature-box {
-            border: 2px dashed var(--neutral-200);
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
-            background: var(--neutral-50);
-            margin-bottom: 1rem;
-        }
         .btn-primary {
             background: var(--primary);
             border-color: var(--primary);
@@ -57,7 +49,17 @@
             background: var(--primary-dark);
             border-color: var(--primary-dark);
         }
+        .btn-outline-secondary {
+            border-color: var(--neutral-200);
+            color: var(--neutral-700);
+        }
+        .btn-outline-secondary:hover {
+            background: var(--neutral-100);
+            border-color: var(--neutral-200);
+        }
         .form-control { border-radius: 10px; padding: 0.75rem 1rem; }
+        .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+        .alert-danger { border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -111,15 +113,23 @@
                 </div>
 
                 <form th:action="@{/member/waiver}" th:object="${waiverRequest}" method="post">
-                    <input type="hidden" th:field="*{waiverVersion}" th:value="${waiverVersion}">
+                    <input type="hidden" name="waiverVersion" th:value="${waiverVersion}">
+
+                    <!-- Display validation errors -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger mb-3">
+                        <p class="mb-1"><strong>Please fix the following errors:</strong></p>
+                        <ul class="mb-0">
+                            <li th:each="err : ${#fields.errors('*')}" th:text="${err}">Error</li>
+                        </ul>
+                    </div>
 
                     <div class="mb-4">
                         <label class="form-label">Type Your Full Name as Electronic Signature <span class="text-danger">*</span></label>
-                        <input type="text" th:field="*{signatureName}" class="form-control" placeholder="Your full legal name" required>
+                        <input type="text" th:field="*{signatureName}" class="form-control" placeholder="Your full legal name">
                     </div>
 
                     <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" th:field="*{agreedToWaiver}" id="agreedToWaiver" required>
+                        <input type="checkbox" th:field="*{agreedToWaiver}" id="agreedToWaiver" class="form-check-input">
                         <label class="form-check-label" for="agreedToWaiver">
                             <strong>I have read, understood, and agree to the terms of this waiver.</strong>
                         </label>

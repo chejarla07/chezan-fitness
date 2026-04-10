@@ -472,6 +472,95 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Emergency Contact Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6><i class="fas fa-phone-alt"></i>Emergency Contact</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="info-card">
+                                    <div class="info-label">Contact Name</div>
+                                    <div class="info-value" th:text="${user.emergencyContactName != null and !user.emergencyContactName.isEmpty()} ? ${user.emergencyContactName} : 'Not Provided'">--</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-card">
+                                    <div class="info-label">Contact Phone</div>
+                                    <div class="info-value" th:text="${user.emergencyContactPhone != null and !user.emergencyContactPhone.isEmpty()} ? ${user.formattedEmergencyPhone} : 'Not Provided'">--</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-card">
+                                    <div class="info-label">Relationship</div>
+                                    <div class="info-value" th:text="${user.emergencyContactRelationship != null and !user.emergencyContactRelationship.isEmpty()} ? ${user.emergencyContactRelationship} : 'Not Provided'">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="/member/profile/edit" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Update Emergency Contact
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Status -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6><i class="fas fa-heartbeat"></i>Health Status</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-card" th:classappend="${hasCompletedParq} ? 'border-success' : 'border-warning'">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="info-label">PAR-Q Health Questionnaire</div>
+                                            <div class="info-value">
+                                                <span th:if="${hasCompletedParq}" class="text-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Completed
+                                                </span>
+                                                <span th:unless="${hasCompletedParq}" class="text-warning">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Pending
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <a th:href="@{/member/parq}" class="btn btn-sm" th:classappend="${hasCompletedParq} ? 'btn-outline-primary' : 'btn-primary'">
+                                            <span th:text="${hasCompletedParq} ? 'View' : 'Complete'">Complete</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-card" th:classappend="${hasAcceptedWaiver} ? 'border-success' : 'border-warning'">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="info-label">Liability Waiver</div>
+                                            <div class="info-value">
+                                                <span th:if="${hasAcceptedWaiver}" class="text-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Signed
+                                                </span>
+                                                <span th:unless="${hasAcceptedWaiver}" class="text-warning">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Pending
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <a th:href="@{/member/waiver}" class="btn btn-sm" th:classappend="${hasAcceptedWaiver} ? 'btn-outline-primary' : 'btn-primary'">
+                                            <span th:text="${hasAcceptedWaiver} ? 'View' : 'Sign'">Sign</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:unless="${hasCompletedParq and hasAcceptedWaiver}" class="alert alert-warning mt-3 mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Action Required:</strong> Please complete the pending items above before checking in to the gym.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Right Column - Billing & Quick Actions -->

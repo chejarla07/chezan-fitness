@@ -347,6 +347,10 @@
             <li><a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="/admin/customers" class="active"><i class="fas fa-users"></i> Customers</a></li>
             <li><a href="/admin/products"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="/admin/discounts"><i class="fas fa-percent"></i> Discounts</a></li>
+            <li><a href="/admin/waivers"><i class="fas fa-file-contract"></i> Waivers</a></li>
+            <li><a href="/admin/parq-questions"><i class="fas fa-clipboard-list"></i> PAR-Q Questions</a></li>
+            <li><a href="/admin/payments"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Invoices</a></li>
             <li><a href="/admin/zuora/sync-status"><i class="fas fa-sync"></i> Zuora Sync</a></li>
         </ul>
@@ -437,6 +441,16 @@
                             <a th:href="@{/admin/customers/{id}/payment-methods(id=${customer.id})}" class="btn btn-outline-secondary text-start">
                                 <i class="fas fa-credit-card me-2"></i>Manage Payment Methods
                             </a>
+                            <hr class="my-2">
+                            <a th:href="@{/admin/customers/{id}/parq(id=${customer.id})}" class="btn btn-outline-info text-start">
+                                <i class="fas fa-clipboard-list me-2"></i>View PAR-Q Status
+                            </a>
+                            <a th:href="@{/admin/customers/{id}/waiver(id=${customer.id})}" class="btn btn-outline-info text-start">
+                                <i class="fas fa-file-contract me-2"></i>View Waiver Status
+                            </a>
+                            <a th:href="@{/admin/customers/{id}/checkins(id=${customer.id})}" class="btn btn-outline-secondary text-start">
+                                <i class="fas fa-history me-2"></i>Check-in History
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -447,9 +461,9 @@
                 <div class="card animate-in delay-1">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="card-title"><i class="fas fa-crown me-2 text-primary"></i>Subscriptions</h6>
-                        <button th:if="${customer.zuoraAccountNumber != null}" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#changePlanModal">
-                            <i class="fas fa-exchange-alt me-1"></i>Change Plan
-                        </button>
+                        <a th:if="${customer.zuoraAccountNumber != null}" th:href="@{/admin/customers/{id}/subscriptions(id=${customer.id})}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-cog me-1"></i>Manage Subscriptions
+                        </a>
                     </div>
                     <div class="card-body">
                         <div th:if="${#lists.isEmpty(subscriptions)}" class="empty-state">
@@ -507,7 +521,7 @@
                                         <small th:if="${pm.cardExpirationMonth}" class="text-muted" th:text="'Expires: ' + ${pm.cardExpirationMonth} + '/' + ${pm.cardExpirationYear}">Expires: 12/25</small>
                                     </div>
                                 </div>
-                                <form th:unless="${pm.isDefault}" th:action="@{/member/payment-methods/{id}/default(id=${pm.id})}" method="post">
+                                <form th:unless="${pm.isDefault}" th:action="@{/admin/customers/{userId}/payment-methods/{id}/default(userId=${customer.id},id=${pm.id})}" method="post">
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Set Default</button>
                                 </form>
                             </div>
@@ -549,7 +563,7 @@
                                             <span class="badge" th:classappend="${inv.status.name() == 'Paid'} ? 'bg-success' : (${inv.status.name() == 'Posted'} ? 'bg-primary' : 'bg-warning')" th:text="${inv.status}">Status</span>
                                         </td>
                                         <td class="text-end">
-                                            <a th:href="@{/member/invoices/{id}/pdf(id=${inv.id})}" class="btn btn-sm btn-outline-secondary" title="Download PDF">
+                                            <a th:href="@{/admin/invoices/{id}/pdf(id=${inv.id})}" class="btn btn-sm btn-outline-secondary" title="Download PDF">
                                                 <i class="fas fa-download"></i>
                                             </a>
                                         </td>
