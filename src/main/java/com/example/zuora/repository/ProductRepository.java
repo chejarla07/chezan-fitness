@@ -23,4 +23,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.ratePlans")
     List<Product> findAllWithRatePlans();
+
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.ratePlans WHERE p.category <> :category AND p.status = :status")
+    List<Product> findByCategoryNotAndStatusWithRatePlans(@Param("category") Product.Category category, @Param("status") Product.Status status);
 }

@@ -54,3 +54,18 @@ amp
 HelloWorld.java
 ZuoraCustomerCreator.java
 /resources/
+
+# Secrets and environment files - NEVER COMMIT
+.env
+.env.local
+.env.*.local
+*.env
+application-local.properties
+application-local.yml
+application-prod.properties
+application-prod.yml
+
+# Secret files with credentials
+*-secret.properties
+*-secret.yml
+secrets/

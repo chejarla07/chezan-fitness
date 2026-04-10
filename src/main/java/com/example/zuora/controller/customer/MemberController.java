@@ -95,6 +95,10 @@ public class MemberController {
         User user = getCurrentUser(authentication);
         model.addAttribute("user", user);
 
+        // Check PAR-Q and Waiver status
+        model.addAttribute("hasCompletedParq", healthQuestionnaireService.hasCompletedParq(user.getId()));
+        model.addAttribute("hasAcceptedWaiver", waiverService.hasAcceptedWaiver(user.getId()));
+
         // Fetch Zuora contact details if available
         if (user.getZuoraAccountId() != null) {
             try {
@@ -163,6 +167,28 @@ public class MemberController {
         return "member/subscriptions";
     }
 
+    @GetMapping("/subscriptions/manage")
+    public String manageSubscription(Authentication authentication, Model model) {
+        User user = getCurrentUser(authentication);
+        List<Subscription> subscriptions = subscriptionService.getUserSubscriptions(user.getId());
+
+        if (subscriptions.isEmpty()) {
+            return "redirect:/member/subscriptions";
+        }
+
+        Subscription activeSubscription = subscriptions.stream()
+                .filter(s -> s.getStatus() == Subscription.SubscriptionStatus.Active)
+                .findFirst()
+                .orElse(subscriptions.get(0));
+
+        model.addAttribute("subscription", activeSubscription);
+        model.addAttribute("subscriptions", subscriptions);
+        model.addAttribute("availablePlans", productService.getActiveProductsByCategory(Product.Category.MEMBERSHIP));
+        model.addAttribute("addOnProducts", productService.getAddOnProducts());
+
+        return "member/subscription-manage";
+    }
+
     @PostMapping("/subscriptions/upgrade")
     public String upgradeSubscription(Authentication authentication,
                                      @ModelAttribute SubscriptionUpdateRequest request,
@@ -225,6 +251,7 @@ public class MemberController {
         User user = getCurrentUser(authentication);
         model.addAttribute("user", user);
         model.addAttribute("products", productService.getActiveProductsByCategory(Product.Category.MEMBERSHIP));
+        model.addAttribute("addOns", productService.getAddOnProducts());
         model.addAttribute("paymentMethods", userService.getUserPaymentMethods(user.getId()));
         model.addAttribute("hasActiveSubscription", subscriptionService.hasActiveSubscription(user.getId()));
         model.addAttribute("subscribeRequest", new SubscribeRequest());
@@ -243,6 +270,7 @@ public class MemberController {
             SignupRequest signupRequest = new SignupRequest();
             signupRequest.setRatePlanId(request.getRatePlanId());
             signupRequest.setCardToken(request.getCardToken());
+            signupRequest.setAddOnRatePlanIds(request.getAddOnRatePlanIds());
 
             // Convert startDate from String to LocalDate and set in signup request
             // The service will handle the start date
@@ -252,6 +280,32 @@ public class MemberController {
             return "redirect:/member/subscriptions";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to create subscription: " + e.getMessage());
+            return "redirect:/member/products";
+        }
+    }
+
+    // Add an add-on to an existing subscription
+    @PostMapping("/subscriptions/add-on")
+    public String addAddOnToSubscription(Authentication authentication,
+                                        @RequestParam Long ratePlanId,
+                                        @RequestParam(required = false) String startDate,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            User user = getCurrentUser(authentication);
+
+            // Check if user has an active subscription
+            if (!subscriptionService.hasActiveSubscription(user.getId())) {
+                redirectAttributes.addFlashAttribute("error", "You need an active membership to add services.");
+                return "redirect:/member/products";
+            }
+
+            // Add the add-on to the existing subscription
+            subscriptionService.addAddOnToSubscription(user, ratePlanId, startDate);
+
+            redirectAttributes.addFlashAttribute("success", "Add-on service added successfully!");
+            return "redirect:/member/subscriptions";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to add service: " + e.getMessage());
             return "redirect:/member/products";
         }
     }

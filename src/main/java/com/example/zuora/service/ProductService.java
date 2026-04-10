@@ -43,6 +43,13 @@ public class ProductService {
         return productRepository.findByCategoryAndStatusWithRatePlans(category, Product.Status.Active);
     }
 
+    /**
+     * Get all add-on products (products with category other than MEMBERSHIP)
+     */
+    public List<Product> getAddOnProducts() {
+        return productRepository.findByCategoryNotAndStatusWithRatePlans(Product.Category.MEMBERSHIP, Product.Status.Active);
+    }
+
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found: " + id));
@@ -167,6 +174,7 @@ public class ProductService {
         ratePlan.setDescription(request.getDescription());
         ratePlan.setBillingPeriod(request.getBillingPeriod());
         ratePlan.setEffectiveStartDate(LocalDate.now());
+        ratePlan.setDiscountEligible(request.isDiscountEligible());
         if (!request.isActive()) {
             ratePlan.setStatus(RatePlan.Status.Inactive);
         }
@@ -210,19 +218,38 @@ public class ProductService {
     @Transactional
     public RatePlan updateRatePlan(Long ratePlanId, UpdateRatePlanRequest request) throws Exception {
         RatePlan ratePlan = getRatePlanById(ratePlanId);
+        boolean needsZuoraUpdate = false;
+        String newName = null;
+        String newDescription = null;
 
-        // Update locally
-        if (request.getName() != null) {
+        // Update locally and track Zuora changes
+        if (request.getName() != null && !request.getName().equals(ratePlan.getName())) {
             ratePlan.setName(request.getName());
+            newName = request.getName();
+            needsZuoraUpdate = true;
         }
         if (request.getDescription() != null) {
             ratePlan.setDescription(request.getDescription());
+            newDescription = request.getDescription();
+            needsZuoraUpdate = true;
         }
         if (request.getBillingPeriod() != null) {
             ratePlan.setBillingPeriod(request.getBillingPeriod());
         }
+        if (request.getDiscountEligible() != null) {
+            ratePlan.setDiscountEligible(request.getDiscountEligible());
+        }
 
         ratePlan = ratePlanRepository.save(ratePlan);
+
+        // Update in Zuora if name or description changed and rate plan is synced
+        if (needsZuoraUpdate && ratePlan.getZuoraRatePlanId() != null) {
+            try {
+                zuoraApiService.updateRatePlan(ratePlan.getZuoraRatePlanId(), newName, newDescription);
+            } catch (Exception e) {
+                System.err.println("Failed to update rate plan in Zuora: " + e.getMessage());
+            }
+        }
 
         // Update price if provided
         if (request.getPrice() != null) {

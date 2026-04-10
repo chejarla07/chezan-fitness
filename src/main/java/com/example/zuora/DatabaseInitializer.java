@@ -2,20 +2,30 @@ package com.example.zuora;
 
 import com.example.zuora.model.*;
 import com.example.zuora.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Component
+@Profile("dev")  // Only run in development profile
 public class DatabaseInitializer implements CommandLineRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final RatePlanRepository ratePlanRepository;
     private final RatePlanChargeRepository ratePlanChargeRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.initial-password:}")
+    private String adminInitialPassword;
 
     public DatabaseInitializer(UserRepository userRepository,
                                 ProductRepository productRepository,
@@ -37,15 +47,21 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private void initializeAdminUser() {
         if (!userRepository.existsByEmail("admin@chezanfitness.com")) {
+            // Skip admin creation if no initial password is configured
+            if (adminInitialPassword == null || adminInitialPassword.isBlank()) {
+                logger.info("No initial admin password configured. Skipping admin user creation.");
+                return;
+            }
+
             User admin = new User();
             admin.setEmail("admin@chezanfitness.com");
-            admin.setPasswordHash(passwordEncoder.encode("admin123"));
+            admin.setPasswordHash(passwordEncoder.encode(adminInitialPassword));
             admin.setFirstName("Admin");
             admin.setLastName("User");
             admin.setRole(User.Role.ADMIN);
             admin.setIsActive(true);
             userRepository.save(admin);
-            System.out.println("Admin user created: admin@chezanfitness.com / admin123");
+            logger.info("Admin user created successfully");
         }
     }
 
@@ -85,7 +101,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                 Product.Category.ADD_ON);
             createRatePlan(classes, "Unlimited Classes", "Monthly add-on", 29.99, RatePlan.BillingPeriod.Month);
 
-            System.out.println("Default fitness products initialized");
+            logger.info("Default fitness products initialized");
         }
     }
 

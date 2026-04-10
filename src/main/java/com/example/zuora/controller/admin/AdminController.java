@@ -7,8 +7,16 @@ import com.example.zuora.model.Invoice;
 import com.example.zuora.model.PaymentMethod;
 import com.example.zuora.model.Product;
 import com.example.zuora.model.RatePlan;
+import com.example.zuora.model.HealthQuestionnaire;
+import com.example.zuora.model.WaiverAcceptance;
+import com.example.zuora.model.CheckIn;
+import com.example.zuora.model.WaiverContent;
+import com.example.zuora.model.ParqQuestion;
 import com.example.zuora.service.*;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -33,12 +41,22 @@ public class AdminController {
     private final ProductSyncService productSyncService;
     private final com.example.zuora.service.DiscountService discountService;
     private final com.example.zuora.service.PaymentService paymentService;
+    private final HealthQuestionnaireService healthQuestionnaireService;
+    private final WaiverService waiverService;
+    private final CheckInService checkInService;
+    private final WaiverContentService waiverContentService;
+    private final ParqQuestionService parqQuestionService;
 
     public AdminController(ProductService productService, UserService userService,
                           SubscriptionService subscriptionService, InvoiceService invoiceService,
                           PasswordEncoder passwordEncoder, ProductSyncService productSyncService,
                           com.example.zuora.service.DiscountService discountService,
-                          com.example.zuora.service.PaymentService paymentService) {
+                          com.example.zuora.service.PaymentService paymentService,
+                          HealthQuestionnaireService healthQuestionnaireService,
+                          WaiverService waiverService,
+                          CheckInService checkInService,
+                          WaiverContentService waiverContentService,
+                          ParqQuestionService parqQuestionService) {
         this.productService = productService;
         this.userService = userService;
         this.subscriptionService = subscriptionService;
@@ -47,6 +65,11 @@ public class AdminController {
         this.productSyncService = productSyncService;
         this.discountService = discountService;
         this.paymentService = paymentService;
+        this.healthQuestionnaireService = healthQuestionnaireService;
+        this.waiverService = waiverService;
+        this.checkInService = checkInService;
+        this.waiverContentService = waiverContentService;
+        this.parqQuestionService = parqQuestionService;
     }
 
     @GetMapping("/dashboard")
@@ -168,6 +191,18 @@ public class AdminController {
         RatePlan ratePlan = productService.getRatePlanById(id);
         model.addAttribute("ratePlan", ratePlan);
         model.addAttribute("product", ratePlan.getProduct());
+
+        // Create a request object pre-populated with existing values for the form
+        com.example.zuora.dto.CreateRatePlanRequest request = new com.example.zuora.dto.CreateRatePlanRequest();
+        request.setName(ratePlan.getName());
+        request.setDescription(ratePlan.getDescription());
+        request.setBillingPeriod(ratePlan.getBillingPeriod());
+        request.setDiscountEligible(ratePlan.getDiscountEligible() == null || ratePlan.getDiscountEligible());
+        if (ratePlan.getRecurringCharge() != null) {
+            request.setPrice(ratePlan.getRecurringCharge().getAmount());
+        }
+        model.addAttribute("createRatePlanRequest", request);
+
         return "admin/rate-plan-form";
     }
 
@@ -391,7 +426,53 @@ public class AdminController {
         return "redirect:/admin/customers";
     }
 
+    // Admin add new subscription for customer
+    @PostMapping("/customers/{id}/subscriptions/add")
+    public String adminAddSubscription(@PathVariable Long id,
+                                       @RequestParam Long ratePlanId,
+                                       RedirectAttributes redirectAttributes) {
+        try {
+            User customer = userService.getUserById(id);
+            com.example.zuora.dto.SignupRequest signupRequest = new com.example.zuora.dto.SignupRequest();
+            signupRequest.setRatePlanId(ratePlanId);
+            subscriptionService.createSubscription(customer, signupRequest);
+            redirectAttributes.addFlashAttribute("success", "Subscription created successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to create subscription: " + e.getMessage());
+        }
+        return "redirect:/admin/customers/" + id + "/subscriptions";
+    }
+
     // ==================== INVOICE MANAGEMENT ====================
+
+    // Admin download invoice PDF
+    @GetMapping("/invoices/{id}/pdf")
+    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long id) {
+        try {
+            Invoice invoice = invoiceService.getInvoiceById(id);
+
+            // If invoice has Zuora invoice number, get PDF from Zuora
+            if (invoice.getZuoraInvoiceNumber() != null && !invoice.getZuoraInvoiceNumber().isEmpty()) {
+                byte[] pdfBytes = invoiceService.getInvoicePdf(invoice.getZuoraInvoiceNumber());
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"invoice_" + invoice.getInvoiceNumber() + ".pdf\"")
+                        .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+                        .body(pdfBytes);
+            } else {
+                // Generate simple PDF for local invoices without Zuora ID
+                String content = "Invoice #: " + invoice.getInvoiceNumber() + "\n" +
+                        "Amount: $" + invoice.getAmount() + "\n" +
+                        "Date: " + invoice.getInvoiceDate() + "\n" +
+                        "Status: " + invoice.getStatus();
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"invoice_" + invoice.getInvoiceNumber() + ".txt\"")
+                        .header(HttpHeaders.CONTENT_TYPE, "text/plain")
+                        .body(content.getBytes());
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     @GetMapping("/invoices")
     public String invoices(Model model) {
@@ -411,6 +492,7 @@ public class AdminController {
         model.addAttribute("subscriptions", subscriptions);
         model.addAttribute("hasActiveSubscription", subscriptionService.hasActiveSubscription(id));
         model.addAttribute("availablePlans", productService.getActiveProductsByCategory(Product.Category.MEMBERSHIP));
+        model.addAttribute("addOnProducts", productService.getAddOnProducts());
 
         // Calculate cancellation options for active subscriptions
         for (Subscription sub : subscriptions) {
@@ -425,6 +507,30 @@ public class AdminController {
         }
 
         return "admin/customer-subscriptions";
+    }
+
+    // Add add-on to customer subscription
+    @PostMapping("/customers/{id}/subscriptions/add-addon")
+    public String addAddOnToCustomerSubscription(@PathVariable Long id,
+                                                 @RequestParam Long ratePlanId,
+                                                 RedirectAttributes redirectAttributes) {
+        try {
+            User customer = userService.getUserById(id);
+
+            // Check if customer has active subscription
+            if (!subscriptionService.hasActiveSubscription(id)) {
+                redirectAttributes.addFlashAttribute("error", "Customer needs an active membership before adding add-ons.");
+                return "redirect:/admin/customers/" + id + "/subscriptions";
+            }
+
+            // Add the add-on
+            subscriptionService.addAddOnToSubscription(customer, ratePlanId, null);
+
+            redirectAttributes.addFlashAttribute("success", "Add-on service added successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to add add-on: " + e.getMessage());
+        }
+        return "redirect:/admin/customers/" + id + "/subscriptions";
     }
 
     // Customer billing (proxy to member/billing)
@@ -486,6 +592,206 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/customers/" + userId + "/payment-methods";
+    }
+
+    // ==================== PAR-Q STATUS ====================
+
+    @GetMapping("/customers/{id}/parq")
+    public String customerParq(@PathVariable Long id, Model model) {
+        User customer = userService.getUserById(id);
+        HealthQuestionnaire latestParq = healthQuestionnaireService.getLatestQuestionnaire(id);
+        List<HealthQuestionnaire> parqHistory = healthQuestionnaireService.getQuestionnaireHistory(id);
+
+        model.addAttribute("customer", customer);
+        model.addAttribute("latestParq", latestParq);
+        model.addAttribute("parqHistory", parqHistory);
+        model.addAttribute("hasCompletedParq", healthQuestionnaireService.hasCompletedParq(id));
+
+        return "admin/customer-parq";
+    }
+
+    // ==================== WAIVER STATUS ====================
+
+    @GetMapping("/customers/{id}/waiver")
+    public String customerWaiver(@PathVariable Long id, Model model) {
+        User customer = userService.getUserById(id);
+        WaiverAcceptance latestWaiver = waiverService.getLatestWaiver(id);
+        List<WaiverAcceptance> waiverHistory = waiverService.getWaiverHistory(id);
+
+        model.addAttribute("customer", customer);
+        model.addAttribute("latestWaiver", latestWaiver);
+        model.addAttribute("waiverHistory", waiverHistory);
+        model.addAttribute("hasAcceptedWaiver", waiverService.hasAcceptedWaiver(id));
+        model.addAttribute("currentWaiverVersion", waiverService.getCurrentWaiverVersion());
+
+        return "admin/customer-waiver";
+    }
+
+    // ==================== CHECK-IN HISTORY ====================
+
+    @GetMapping("/customers/{id}/checkins")
+    public String customerCheckIns(@PathVariable Long id, Model model) {
+        User customer = userService.getUserById(id);
+        List<CheckIn> checkInHistory = checkInService.getCheckInHistory(id);
+        long totalVisits = checkInService.getVisitCount(id);
+        CheckIn currentCheckIn = checkInService.getCurrentCheckIn(id);
+
+        model.addAttribute("customer", customer);
+        model.addAttribute("checkIns", checkInHistory);
+        model.addAttribute("totalVisits", totalVisits);
+        model.addAttribute("currentCheckIn", currentCheckIn);
+        model.addAttribute("isCheckedIn", checkInService.isCheckedIn(id));
+
+        return "admin/customer-checkins";
+    }
+
+    // ==================== WAIVER MANAGEMENT ====================
+
+    @GetMapping("/waivers")
+    public String waiverManagement(Model model) {
+        model.addAttribute("waivers", waiverContentService.getAllWaiverVersions());
+        model.addAttribute("activeWaiver", waiverContentService.getActiveWaiver());
+        return "admin/waivers";
+    }
+
+    @PostMapping("/waivers/create")
+    public String createWaiver(@RequestParam String version,
+                               @RequestParam String title,
+                               @RequestParam String content,
+                               Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = userService.getUserByEmail(authentication.getName());
+            waiverContentService.createWaiver(version, title, content, currentUser.getId());
+            redirectAttributes.addFlashAttribute("success", "Waiver version '" + version + "' created successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to create waiver: " + e.getMessage());
+        }
+        return "redirect:/admin/waivers";
+    }
+
+    @PostMapping("/waivers/{id}/update")
+    public String updateWaiver(@PathVariable Long id,
+                               @RequestParam String title,
+                               @RequestParam String content,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            waiverContentService.updateWaiver(id, title, content);
+            redirectAttributes.addFlashAttribute("success", "Waiver updated successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update waiver: " + e.getMessage());
+        }
+        return "redirect:/admin/waivers";
+    }
+
+    @PostMapping("/waivers/{id}/activate")
+    public String activateWaiver(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            waiverContentService.activateWaiver(id);
+            redirectAttributes.addFlashAttribute("success", "Waiver version activated successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to activate waiver: " + e.getMessage());
+        }
+        return "redirect:/admin/waivers";
+    }
+
+    @PostMapping("/waivers/{id}/delete")
+    public String deleteWaiver(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            waiverContentService.deleteWaiver(id);
+            redirectAttributes.addFlashAttribute("success", "Waiver version deleted successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete waiver: " + e.getMessage());
+        }
+        return "redirect:/admin/waivers";
+    }
+
+    @PostMapping("/waivers/initialize")
+    public String initializeDefaultWaiver(RedirectAttributes redirectAttributes) {
+        try {
+            waiverContentService.initializeDefaultWaiver();
+            redirectAttributes.addFlashAttribute("success", "Default waiver loaded successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to initialize default waiver: " + e.getMessage());
+        }
+        return "redirect:/admin/waivers";
+    }
+
+    // ==================== PAR-Q QUESTIONS MANAGEMENT ====================
+
+    @GetMapping("/parq-questions")
+    public String parqQuestionsManagement(Model model) {
+        model.addAttribute("questions", parqQuestionService.getAllQuestions());
+        return "admin/parq-questions";
+    }
+
+    @PostMapping("/parq-questions/create")
+    public String createParqQuestion(@RequestParam Integer questionNumber,
+                                      @RequestParam String questionText,
+                                      @RequestParam(required = false) String helpText,
+                                      @RequestParam(required = false, defaultValue = "true") Boolean required,
+                                      @RequestParam(required = false) Integer displayOrder,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            parqQuestionService.createQuestion(questionNumber, questionText, helpText, required, displayOrder);
+            redirectAttributes.addFlashAttribute("success", "Question created successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to create question: " + e.getMessage());
+        }
+        return "redirect:/admin/parq-questions";
+    }
+
+    @PostMapping("/parq-questions/{id}/update")
+    public String updateParqQuestion(@PathVariable Long id,
+                                      @RequestParam String questionText,
+                                      @RequestParam(required = false) String helpText,
+                                      @RequestParam(required = false) Boolean active,
+                                      @RequestParam(required = false) Boolean required,
+                                      @RequestParam(required = false) Integer displayOrder,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            parqQuestionService.updateQuestion(id, questionText, helpText, active, required, displayOrder);
+            redirectAttributes.addFlashAttribute("success", "Question updated successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update question: " + e.getMessage());
+        }
+        return "redirect:/admin/parq-questions";
+    }
+
+    @PostMapping("/parq-questions/{id}/toggle-active")
+    public String toggleParqQuestionActive(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            ParqQuestion question = parqQuestionService.getQuestionById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+            parqQuestionService.updateQuestion(id, null, null, !question.getActive(), null, null);
+            redirectAttributes.addFlashAttribute("success",
+                    question.getActive() ? "Question deactivated." : "Question activated.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to toggle question: " + e.getMessage());
+        }
+        return "redirect:/admin/parq-questions";
+    }
+
+    @PostMapping("/parq-questions/{id}/delete")
+    public String deleteParqQuestion(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            parqQuestionService.deleteQuestion(id);
+            redirectAttributes.addFlashAttribute("success", "Question deleted successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete question: " + e.getMessage());
+        }
+        return "redirect:/admin/parq-questions";
+    }
+
+    @PostMapping("/parq-questions/initialize")
+    public String initializeDefaultQuestions(RedirectAttributes redirectAttributes) {
+        try {
+            parqQuestionService.initializeDefaultQuestions();
+            redirectAttributes.addFlashAttribute("success", "Default PAR-Q questions loaded successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to initialize questions: " + e.getMessage());
+        }
+        return "redirect:/admin/parq-questions";
     }
 
     // ==================== GLOBAL SEARCH ====================
@@ -693,5 +999,42 @@ public class AdminController {
             model.addAttribute("error", "Failed to load payments: " + e.getMessage());
         }
         return "admin/payments";
+    }
+
+    // Record a new payment
+    @PostMapping("/payments")
+    public String recordPayment(@RequestParam Long customerId,
+                                @RequestParam Double amount,
+                                @RequestParam(required = false) String paymentMethodType,
+                                @RequestParam(required = false) String paymentDate,
+                                @RequestParam(required = false) String referenceNumber,
+                                @RequestParam(required = false) String notes,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            User customer = userService.getUserById(customerId);
+            // Create payment record (this would typically go through a payment service)
+            paymentService.recordManualPayment(customer, amount, paymentMethodType, referenceNumber, notes);
+            redirectAttributes.addFlashAttribute("success", "Payment recorded successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to record payment: " + e.getMessage());
+        }
+        return "redirect:/admin/payments";
+    }
+
+    // Process refund
+    @PostMapping("/payments/refund")
+    public String processRefund(@RequestParam Long paymentId,
+                                @RequestParam Double amount,
+                                @RequestParam(required = false) String refundType,
+                                @RequestParam(required = false) String reasonCode,
+                                @RequestParam(required = false) String notes,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            paymentService.processRefund(paymentId, amount, reasonCode, notes);
+            redirectAttributes.addFlashAttribute("success", "Refund processed successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to process refund: " + e.getMessage());
+        }
+        return "redirect:/admin/payments";
     }
 }

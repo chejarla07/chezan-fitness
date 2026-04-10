@@ -1,0 +1,49 @@
+# Docker Compose for local development with PostgreSQL
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://db:5432/chezan
+      DATABASE_USERNAME: chezan
+      DATABASE_PASSWORD: chezan_dev_password
+      ZUORA_CLIENT_ID: ${ZUORA_CLIENT_ID}
+      ZUORA_CLIENT_SECRET: ${ZUORA_CLIENT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      APP_BASE_URL: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: chezan
+      POSTGRES_USER: chezan
+      POSTGRES_PASSWORD: chezan_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chezan -d chezan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

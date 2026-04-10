@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Access Denied | Chezan Fitness</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --warning: #f59e0b;
+            --neutral-50: #f8fafc;
+            --neutral-200: #e2e8f0;
+            --neutral-700: #334155;
+            --neutral-900: #0f172a;
+        }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--neutral-50); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .error-container { text-align: center; padding: 2rem; }
+        .error-code { font-size: 8rem; font-weight: 800; color: var(--warning); line-height: 1; margin-bottom: 1rem; }
+        .error-title { font-size: 1.5rem; font-weight: 600; color: var(--neutral-900); margin-bottom: 0.5rem; }
+        .error-message { color: var(--neutral-700); margin-bottom: 2rem; }
+        .btn-primary { background: var(--warning); border-color: var(--warning); color: white; font-weight: 500; padding: 0.75rem 1.5rem; border-radius: 8px; }
+        .btn-primary:hover { background: #d97706; border-color: #d97706; color: white; }
+        .btn-outline-secondary { border-color: var(--neutral-200); color: var(--neutral-700); }
+        .btn-outline-secondary:hover { background: var(--neutral-200); }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">403</div>
+        <h1 class="error-title">Access Denied</h1>
+        <p class="error-message">You don't have permission to access this page. Please contact an administrator if you believe this is an error.</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i>Go Home
+            </a>
+            <a href="/login" class="btn btn-outline-secondary">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+        </div>
+    </div>
+</body>
+</html>

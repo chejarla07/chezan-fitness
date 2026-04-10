@@ -1,0 +1,36 @@
+# Chezan Fitness Application - Base Configuration
+spring:
+  application:
+    name: chezan-fitness
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Server Configuration
+server:
+  port: 8080
+
+# Thymeleaf Configuration
+spring.thymeleaf:
+  prefix: classpath:/templates/
+  suffix: .html
+
+# JWT Configuration
+jwt:
+  expiration: 86400000  # 24 hours in milliseconds
+
+# Email Verification
+app:
+  email:
+    verification:
+      required: true
+      token-expiry-hours: 24
+  password-reset:
+    token-expiry-hours: 1
+  waiver:
+    current-version: 2024-01
+  parq:
+    current-version: 2024-01
+
+# Zuora Base URL (defaults to sandbox)
+zuora:
+  base-url: ${ZUORA_BASE_URL:https://rest.apisandbox.zuora.com}
