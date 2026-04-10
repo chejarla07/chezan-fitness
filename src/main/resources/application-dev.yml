@@ -15,14 +15,19 @@ spring:
       ddl-auto: update
     show-sql: true
 
-# Zuora API Credentials (from environment variables)
+  # Flyway - baseline on existing database
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+
+# Zuora API Credentials (from environment variables, with dev defaults)
 zuora:
-  client-id: ${ZUORA_CLIENT_ID}
-  client-secret: ${ZUORA_CLIENT_SECRET}
+  client-id: ${ZUORA_CLIENT_ID:dev-client-id}
+  client-secret: ${ZUORA_CLIENT_SECRET:dev-client-secret}
 
 # JWT Secret (from environment variable, with dev default)
 jwt:
-  secret: ${JWT_SECRET:dev-secret-key-change-in-production-environment}
+  secret: ${JWT_SECRET:Y2hlemFuLWZpdG5lc3MtZGV2LXNlY3JldC1rZXktMjAyNi1zZWN1cmUtYmFzZTY0}
 
 # Google Maps API Key
 google:
