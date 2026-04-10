@@ -8,6 +8,7 @@ public class UpdateRatePlanRequest {
     private String description;
     private BillingPeriod billingPeriod;
     private Double price;
+    private Boolean discountEligible;
 
     // Getters and Setters
     public Long getRatePlanId() {
@@ -48,5 +49,13 @@ public class UpdateRatePlanRequest {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public Boolean getDiscountEligible() {
+        return discountEligible;
+    }
+
+    public void setDiscountEligible(Boolean discountEligible) {
+        this.discountEligible = discountEligible;
     }
 }

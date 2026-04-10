@@ -185,7 +185,21 @@ public class SubscriptionService {
         subscription.setTermStartDate(termStartDate);
         subscription.setAutoRenew(true);
 
-        return subscriptionRepository.save(subscription);
+        subscription = subscriptionRepository.save(subscription);
+
+        // Add add-ons if selected
+        if (signupRequest.getAddOnRatePlanIds() != null && !signupRequest.getAddOnRatePlanIds().isEmpty()) {
+            for (Long addOnRatePlanId : signupRequest.getAddOnRatePlanIds()) {
+                try {
+                    addAddOnToSubscription(user, addOnRatePlanId, termStartDate.toString());
+                } catch (Exception e) {
+                    System.err.println("Failed to add add-on " + addOnRatePlanId + ": " + e.getMessage());
+                    // Continue with other add-ons
+                }
+            }
+        }
+
+        return subscription;
     }
 
     @Transactional
@@ -390,6 +404,56 @@ public class SubscriptionService {
                 subscriptionRepository.save(subscription);
             }
         }
+    }
+
+    /**
+     * Add an add-on rate plan to an existing subscription
+     */
+    @Transactional
+    public Subscription addAddOnToSubscription(User user, Long addOnRatePlanId, String startDateStr) throws Exception {
+        // Get the user's active subscription
+        Subscription subscription = getActiveSubscription(user.getId());
+        if (subscription == null) {
+            throw new RuntimeException("No active subscription found");
+        }
+
+        // Get the add-on rate plan
+        RatePlan addOnRatePlan = ratePlanRepository.findById(addOnRatePlanId)
+                .orElseThrow(() -> new RuntimeException("Add-on rate plan not found"));
+
+        // Validate that rate plan has Zuora ID
+        if (addOnRatePlan.getZuoraRatePlanId() == null) {
+            throw new RuntimeException("Add-on rate plan is not synced with Zuora");
+        }
+
+        // Parse start date
+        LocalDate effectiveDate = LocalDate.now();
+        if (startDateStr != null && !startDateStr.isEmpty()) {
+            try {
+                effectiveDate = LocalDate.parse(startDateStr);
+            } catch (Exception e) {
+                System.err.println("Failed to parse start date: " + startDateStr + ", using today");
+            }
+        }
+
+        // Get the charge for the add-on
+        RatePlanCharge addOnCharge = addOnRatePlan.getRecurringCharge();
+        String zuoraChargeId = addOnCharge != null ? addOnCharge.getZuoraChargeId() : null;
+
+        // Add add-on to subscription in Zuora using Orders API
+        JsonNode zuoraResponse = zuoraApiService.addRatePlanToSubscription(
+                subscription.getZuoraSubscriptionNumber(),
+                addOnRatePlan.getZuoraRatePlanId(),
+                user.getZuoraAccountNumber(),
+                effectiveDate.toString(),
+                zuoraChargeId
+        );
+
+        // Note: We don't create a new Subscription entity for add-ons
+        // Add-ons are tracked as part of the subscription in Zuora
+        // In the future, we could add a separate entity to track add-ons locally
+
+        return subscription;
     }
 
     /**

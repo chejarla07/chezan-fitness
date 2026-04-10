@@ -42,6 +42,9 @@ public class RatePlan {
     @Column(name = "billing_period_value")
     private Integer billingPeriodValue;
 
+    @Column(name = "discount_eligible")
+    private Boolean discountEligible = true;
+
     @OneToMany(mappedBy = "ratePlan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RatePlanCharge> charges = new ArrayList<>();
 
@@ -126,4 +129,7 @@ public class RatePlan {
         RatePlanCharge charge = getRecurringCharge();
         return charge != null ? charge.getAmount() : 0.0;
     }
+
+    public Boolean getDiscountEligible() { return discountEligible; }
+    public void setDiscountEligible(Boolean discountEligible) { this.discountEligible = discountEligible; }
 }

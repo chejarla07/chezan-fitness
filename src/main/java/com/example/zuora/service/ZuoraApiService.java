@@ -239,6 +239,29 @@ public class ZuoraApiService {
     }
 
     /**
+     * Update rate plan in Zuora (name, description)
+     */
+    public JsonNode updateRatePlan(String zuoraRatePlanId, String name, String description) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock rate plan update");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("id", zuoraRatePlanId);
+            return mockResponse;
+        }
+
+        authenticate();
+        String apiUrl = zuoraBaseUrl + "/v1/object/product-rate-plan/" + zuoraRatePlanId;
+
+        ObjectNode body = objectMapper.createObjectNode();
+        if (name != null) body.put("Name", name);
+        if (description != null) body.put("Description", description);
+
+        return executePut(apiUrl, body.toString());
+    }
+
+    /**
      * Create a customer account in Zuora
      */
     public JsonNode createAccount(User user, SignupRequest signupRequest) throws Exception {
@@ -838,6 +861,73 @@ public class ZuoraApiService {
         if (response.has("success") && !response.get("success").asBoolean()) {
             String errorMsg = response.has("reasons") ? response.get("reasons").toString() : "Unknown error";
             throw new RuntimeException("Zuora subscription resume failed: " + errorMsg);
+        }
+
+        ObjectNode result = objectMapper.createObjectNode();
+        result.put("success", true);
+        result.put("subscriptionNumber", zuoraSubscriptionNumber);
+        return result;
+    }
+
+    /**
+     * Add a rate plan (add-on) to an existing subscription using Orders API
+     */
+    public JsonNode addRatePlanToSubscription(String zuoraSubscriptionNumber,
+                                              String ratePlanId,
+                                              String zuoraAccountNumber,
+                                              String effectiveDate,
+                                              String chargeId) throws Exception {
+        // Test mode: return mock success response
+        if ("test".equals(clientId) || "test".equals(clientSecret)) {
+            System.out.println("Zuora TEST MODE: Returning mock add rate plan");
+            ObjectNode mockResponse = objectMapper.createObjectNode();
+            mockResponse.put("success", true);
+            mockResponse.put("subscriptionNumber", zuoraSubscriptionNumber);
+            mockResponse.put("orderNumber", "O-TEST-" + System.currentTimeMillis());
+            return mockResponse;
+        }
+
+        authenticate();
+        String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String apiUrl = zuoraBaseUrl + "/v1/orders";
+
+        System.out.println("Adding rate plan to subscription in Zuora: " + zuoraSubscriptionNumber);
+        System.out.println("  Rate Plan ID: " + ratePlanId);
+        System.out.println("  Effective Date: " + effectiveDate);
+
+        // Build add product action per Zuora Orders API
+        ObjectNode addProduct = objectMapper.createObjectNode();
+        addProduct.put("productRatePlanId", ratePlanId);
+
+        // Build order action - type is "AddProduct"
+        ObjectNode orderAction = objectMapper.createObjectNode();
+        orderAction.put("type", "AddProduct");
+        orderAction.putArray("triggerDates").add(
+            objectMapper.createObjectNode().put("name", "ContractEffective").put("triggerDate", effectiveDate != null ? effectiveDate : today)
+        );
+        orderAction.set("addProduct", addProduct);
+
+        // Build subscription
+        ObjectNode subscriptionData = objectMapper.createObjectNode();
+        subscriptionData.put("subscriptionNumber", zuoraSubscriptionNumber);
+        subscriptionData.putArray("orderActions").add(orderAction);
+
+        // Build order request
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("existingAccountNumber", zuoraAccountNumber);
+        body.put("orderDate", today);
+        body.put("description", "Add-on service added via Chezan Fitness");
+        body.putArray("subscriptions").add(subscriptionData);
+
+        System.out.println("Zuora Orders API AddProduct Request: " + body.toString());
+
+        JsonNode response = executePost(apiUrl, body.toString());
+        System.out.println("Zuora Orders API AddProduct Response: " + response.toString());
+
+        // Check for success
+        if (response.has("success") && !response.get("success").asBoolean()) {
+            String errorMsg = response.has("reasons") ? response.get("reasons").toString() : "Unknown error";
+            throw new RuntimeException("Zuora add rate plan failed: " + errorMsg);
         }
 
         ObjectNode result = objectMapper.createObjectNode();

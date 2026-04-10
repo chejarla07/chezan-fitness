@@ -91,6 +91,9 @@ public class SignupRequest {
 
     private String termsVersion = "2024-01";
 
+    // Add-on products (optional)
+    private java.util.List<Long> addOnRatePlanIds;
+
     // Getters and Setters
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
@@ -200,4 +203,7 @@ public class SignupRequest {
 
     public String getTermsVersion() { return termsVersion; }
     public void setTermsVersion(String termsVersion) { this.termsVersion = termsVersion; }
+
+    public java.util.List<Long> getAddOnRatePlanIds() { return addOnRatePlanIds; }
+    public void setAddOnRatePlanIds(java.util.List<Long> addOnRatePlanIds) { this.addOnRatePlanIds = addOnRatePlanIds; }
 }

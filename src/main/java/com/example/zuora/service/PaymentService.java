@@ -376,4 +376,45 @@ public class PaymentService {
 
         return "Unknown";
     }
+
+    /**
+     * Record a manual payment (admin function)
+     */
+    @Transactional
+    public Payment recordManualPayment(User user, Double amount, String paymentMethodType,
+                                       String referenceNumber, String notes) throws Exception {
+        Payment payment = new Payment();
+        payment.setUser(user);
+        payment.setAmount(amount);
+        payment.setCurrency("USD");
+        payment.setPaymentDate(LocalDate.now());
+        payment.setStatus(Payment.PaymentStatus.Processed);
+        payment.setReferenceNumber(referenceNumber);
+        payment.setGatewayResponse(notes != null ? notes : "");
+
+        return paymentRepository.save(payment);
+    }
+
+    /**
+     * Process a refund (admin function)
+     */
+    @Transactional
+    public void processRefund(Long paymentId, Double amount, String reasonCode, String notes) throws Exception {
+        Payment payment = getPayment(paymentId);
+
+        if (payment.getZuoraPaymentId() != null) {
+            // If this is a Zuora payment, process refund through Zuora
+            RefundRequest refundRequest = new RefundRequest();
+            refundRequest.setAmount(amount);
+            refundRequest.setType("External");
+            refundRequest.setReasonCode(reasonCode);
+            refundRequest.setComment(notes);
+            refundPayment(paymentId, refundRequest);
+        } else {
+            // For local payments, just update the status
+            payment.setStatus(Payment.PaymentStatus.Voided);
+            payment.setGatewayResponse("Refunded: " + (notes != null ? notes : ""));
+            paymentRepository.save(payment);
+        }
+    }
 }

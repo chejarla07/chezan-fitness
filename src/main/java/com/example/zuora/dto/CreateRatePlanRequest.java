@@ -9,6 +9,7 @@ public class CreateRatePlanRequest {
     private BillingPeriod billingPeriod;
     private Double price;
     private boolean active = true;
+    private boolean discountEligible = true;
 
     // Getters and Setters
     public Long getProductId() {
@@ -57,5 +58,13 @@ public class CreateRatePlanRequest {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isDiscountEligible() {
+        return discountEligible;
+    }
+
+    public void setDiscountEligible(boolean discountEligible) {
+        this.discountEligible = discountEligible;
     }
 }
